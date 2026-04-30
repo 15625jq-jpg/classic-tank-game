@@ -19,6 +19,9 @@
 - ``经典坦克大战平衡版v3.8.html``
 - ``经典坦克大战平衡版v3.7.html``
 
+## 游玩网址
+- ``(https://15625jq-jpg.github.io/classic-tank-game/)``
+
 ## 目录树
 
 ```text
