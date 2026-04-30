@@ -1,0 +1,32 @@
+目录结构说明
+index.html：正式首页，展示当前版本、更新入口和历史版本入口。
+play/：正式游玩入口目录。
+play/index.html：默认跳转到当前正式版本。
+updates/：版本更新页目录。
+updates/index.html：展示近期版本更新摘要。
+versions/：历史版本页目录。
+versions/index.html：展示可访问的历史版本入口。
+.nojekyll：GitHub Pages 发布辅助文件。
+README.md：发布目录结构与用途说明。
+发布与更新说明.md：手动维护时的发布说明。
+更新发布.ps1：本地自动更新脚本。
+经典坦克大战平衡版版本调整说明.md：完整版本调整记录。
+经典坦克大战平衡版v3.7.html：历史版本文件。
+经典坦克大战平衡版v3.8.html：当前正式版本文件。
+playtest-v3.3-menu.png：首页展示使用的截图资源。
+目录树
+.nojekyll
+README.md
+index.html
+play/
+  index.html
+playtest-v3.3-menu.png
+updates/
+  index.html
+versions/
+  index.html
+发布与更新说明.md
+更新发布.ps1
+经典坦克大战平衡版版本调整说明.md
+经典坦克大战平衡版v3.7.html
+经典坦克大战平衡版v3.8.html

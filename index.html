@@ -310,14 +310,63 @@
 
   .status {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(0, 1fr));
     gap: 16px;
+  }
+
+  .status .panel {
+    min-height: 190px;
   }
 
   .status .panel strong {
     display: block;
-    font-size: 26px;
-    margin-bottom: 4px;
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+
+  .status .panel p {
+    margin: 0;
+    color: #d2d8e5;
+    line-height: 1.75;
+  }
+
+  .overview-main {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: var(--panel-strong);
+  }
+
+  .overview-kicker {
+    display: inline-block;
+    margin-bottom: 14px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .overview-main strong {
+    font-size: 40px;
+    margin-bottom: 10px;
+  }
+
+  .overview-main p {
+    max-width: 26ch;
+  }
+
+  .overview-stat {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .overview-stat span {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .overview-stat strong {
+    font-size: 28px;
+    margin: 12px 0 10px;
   }
 
   .timeline {
@@ -416,7 +465,6 @@
               <div class="pill">最新发布：2026-04-30</div>
               <div class="pill">当前版本：v3.8</div>
               <div class="pill">支持单人 / 双人</div>
-              <div class="pill">适合 GitHub Pages 发布</div>
             </div>
           </div>
           <div class="actions">
@@ -432,7 +480,6 @@
               <strong>主菜单与规则入口</strong>
               <span>当前正式入口采用根目录首页 + 独立游玩页 + 更新页结构，便于后续持续发布。</span>
             </div>
-            <span>截图来源：v3.3 本地验证</span>
           </div>
         </div>
       </section>
@@ -440,24 +487,36 @@
       <section class="section">
         <div class="section-head">
           <h2>当前版本概览</h2>
-          <p>首页负责展示，游玩入口负责跳转到最新版本，版本记录页负责沉淀更新。后面继续改版时，只需要更新少量位置。</p>
+          <p>把版本入口、玩法范围和内容规模放在一处看清楚，读起来会比之前那组数字卡片顺一点。</p>
         </div>
         <div class="status">
-          <article class="panel">
-            <strong>v3.8</strong>
-            <span>正式入口当前指向版本</span>
+          <article class="panel overview-main">
+            <div>
+              <span class="overview-kicker">当前正式版本</span>
+              <strong>v3.8</strong>
+              <p>首页、游玩入口和历史版本页当前都围绕这一版组织，玩家默认进入的也是这个版本。</p>
+            </div>
           </article>
-          <article class="panel">
-            <strong>2</strong>
-            <span>支持单人与双人控制方案</span>
+          <article class="panel overview-stat">
+            <div>
+              <span>支持模式</span>
+              <strong>单人 / 双人</strong>
+            </div>
+            <p>两套默认键位都已接入主菜单、规则说明和正式游玩入口。</p>
           </article>
-          <article class="panel">
-            <strong>4</strong>
-            <span>地图轮换周期内的场景变化</span>
+          <article class="panel overview-stat">
+            <div>
+              <span>地图轮换</span>
+              <strong>4 张地图</strong>
+            </div>
+            <p>场景会按轮换周期切换，避免每局都落在同一套地形节奏里。</p>
           </article>
-          <article class="panel">
-            <strong>3</strong>
-            <span>阶段化 Boss 设计方向</span>
+          <article class="panel overview-stat">
+            <div>
+              <span>Boss 设计</span>
+              <strong>3 类路线</strong>
+            </div>
+            <p>当前版本已经把追击、弹幕和干扰型 Boss 玩法区分得比较明确。</p>
           </article>
         </div>
       </section>
@@ -514,6 +573,7 @@
           <p>正式发布页只放最近一段的核心变化，完整调整过程继续保留在原始版本说明里。</p>
         </div>
         <div class="timeline">
+          <!-- AUTO_HOME_CURRENT_RELEASE_START -->
           <article class="timeline-item">
             <header>
               <h3>v3.8</h3>
@@ -525,6 +585,7 @@
               <li>`shield` 结束后会对基地周围随机 1 格追加 +1 抗击打能力。</li>
             </ul>
           </article>
+          <!-- AUTO_HOME_CURRENT_RELEASE_END -->
           <article class="timeline-item">
             <header>
               <h3>v3.7 - v3.6</h3>
@@ -557,6 +618,7 @@
           <p>当前正式入口默认进入最新版，上一版稳定版本仍保留可访问入口，方便回看和对比。</p>
         </div>
         <div class="grid-2">
+          <!-- AUTO_HOME_HISTORY_START -->
           <article class="panel">
             <h3>当前正式版本</h3>
             <p>`v3.8` 作为默认游玩入口，面向当前对外发布。</p>
@@ -567,12 +629,13 @@
             <p>`v3.7` 作为可查找的历史版本保留，适合回看之前的手感与表现。</p>
             <p><a href="./经典坦克大战平衡版v3.7.html" style="color:#f4c84a;">打开 v3.7</a></p>
           </article>
+          <!-- AUTO_HOME_HISTORY_END -->
         </div>
       </section>
     </main>
 
     <footer class="footer">
-      <span>推荐部署：GitHub Pages 静态站点</span>
+      <span>当前站点已提供正式入口、更新页和历史版本页</span>
       <span>完整更新记录见根目录版本说明文件</span>
     </footer>
   </div>
