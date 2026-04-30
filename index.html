@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>经典坦克大战平衡版</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #080909;
+    --panel: rgba(17, 19, 24, 0.9);
+    --panel-strong: rgba(22, 25, 31, 0.96);
+    --line: rgba(255, 255, 255, 0.14);
+    --text: #f4f6fb;
+    --muted: #a6afc0;
+    --gold: #f4c84a;
+    --accent: #67d48d;
+    --danger: #ff6e6e;
+    --shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    min-height: 100%;
+    background:
+      linear-gradient(180deg, rgba(8, 9, 9, 0.82), rgba(8, 9, 9, 0.96)),
+      #080909;
+    color: var(--text);
+    font-family: Arial, "Microsoft YaHei", sans-serif;
+  }
+
+  body {
+    line-height: 1.6;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .page {
+    width: min(1160px, calc(100vw - 32px));
+    margin: 0 auto;
+    padding: 24px 0 48px;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0 20px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background:
+      linear-gradient(135deg, rgba(244, 200, 74, 0.22), rgba(103, 212, 141, 0.1)),
+      #12161d;
+    border: 1px solid var(--line);
+    position: relative;
+    box-shadow: var(--shadow);
+  }
+
+  .brand-mark::before,
+  .brand-mark::after {
+    content: "";
+    position: absolute;
+    background: var(--gold);
+  }
+
+  .brand-mark::before {
+    inset: 10px 9px 10px 9px;
+    border-radius: 6px;
+  }
+
+  .brand-mark::after {
+    width: 10px;
+    height: 6px;
+    right: 7px;
+    top: 16px;
+    border-radius: 3px;
+  }
+
+  .brand-text strong {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .brand-text span,
+  .topbar nav a {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .topbar nav {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
+    gap: 20px;
+    align-items: stretch;
+    min-height: 520px;
+  }
+
+  .hero-copy,
+  .hero-shot,
+  .panel,
+  .timeline-item {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    box-shadow: var(--shadow);
+  }
+
+  .hero-copy {
+    padding: 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-radius: 8px;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  h1 {
+    margin: 18px 0 12px;
+    font-size: clamp(34px, 5vw, 56px);
+    line-height: 1.08;
+  }
+
+  .lead {
+    max-width: 46ch;
+    margin: 0;
+    color: #d2d8e5;
+    font-size: 17px;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .pill {
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--muted);
+    font-size: 13px;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+  }
+
+  .button {
+    min-width: 152px;
+    padding: 14px 18px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-weight: 700;
+    text-align: center;
+    transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  }
+
+  .button:hover {
+    transform: translateY(-1px);
+  }
+
+  .button.primary {
+    background: linear-gradient(135deg, #f0c24d, #d99d2d);
+    color: #161101;
+  }
+
+  .button.secondary {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: var(--text);
+  }
+
+  .hero-shot {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    min-height: 520px;
+    background:
+      linear-gradient(180deg, rgba(4, 4, 6, 0.12), rgba(4, 4, 6, 0.6)),
+      url("./playtest-v3.3-menu.png") center/cover no-repeat;
+  }
+
+  .hero-shot::after {
+    content: "";
+    position: absolute;
+    inset: auto 18px 18px 18px;
+    height: 132px;
+    border-radius: 8px;
+    background:
+      linear-gradient(180deg, rgba(7, 7, 9, 0), rgba(7, 7, 9, 0.92));
+  }
+
+  .shot-note {
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    z-index: 1;
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .shot-note strong {
+    display: block;
+    font-size: 19px;
+    margin-bottom: 6px;
+  }
+
+  .shot-note span {
+    color: #d8deea;
+    font-size: 14px;
+  }
+
+  .section {
+    padding-top: 28px;
+  }
+
+  .section-head {
+    margin-bottom: 16px;
+  }
+
+  .section-head h2 {
+    margin: 0 0 8px;
+    font-size: 28px;
+  }
+
+  .section-head p {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .grid-3,
+  .grid-2 {
+    display: grid;
+    gap: 16px;
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .panel {
+    border-radius: 8px;
+    padding: 20px;
+  }
+
+  .panel h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+  }
+
+  .panel p,
+  .panel li {
+    color: #d2d8e5;
+    font-size: 15px;
+  }
+
+  .panel ul {
+    margin: 0;
+    padding-left: 18px;
+  }
+
+  .status {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .status .panel strong {
+    display: block;
+    font-size: 26px;
+    margin-bottom: 4px;
+  }
+
+  .timeline {
+    display: grid;
+    gap: 14px;
+  }
+
+  .timeline-item {
+    border-radius: 8px;
+    padding: 18px 20px;
+  }
+
+  .timeline-item header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .timeline-item h3 {
+    margin: 0;
+    font-size: 19px;
+  }
+
+  .timeline-item span {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .timeline-item ul {
+    margin: 0;
+    padding-left: 18px;
+    color: #d2d8e5;
+  }
+
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 36px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  @media (max-width: 980px) {
+    .hero,
+    .grid-3,
+    .grid-2,
+    .status {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-shot {
+      min-height: 360px;
+    }
+
+    .hero-copy {
+      padding: 26px;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div class="brand-text">
+          <strong>经典坦克大战平衡版</strong>
+          <span>浏览器双人动作防守游戏</span>
+        </div>
+      </div>
+      <nav>
+        <a href="./play/">开始游戏</a>
+        <a href="./updates/">版本更新</a>
+        <a href="./versions/">历史版本</a>
+        <a href="./经典坦克大战平衡版版本调整说明.md">完整记录</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <div>
+            <div class="eyebrow">正式发布入口</div>
+            <h1>经典坦克大战平衡版</h1>
+            <p class="lead">
+              围绕单人 / 双人协作、Boss 关压力、地图轮换与操作反馈持续打磨的坦克防守版本。当前正式入口指向
+              <strong>v3.8</strong>，适合直接部署为静态网页并持续迭代。
+            </p>
+            <div class="hero-meta">
+              <div class="pill">最新发布：2026-04-30</div>
+              <div class="pill">当前版本：v3.8</div>
+              <div class="pill">支持单人 / 双人</div>
+              <div class="pill">适合 GitHub Pages 发布</div>
+            </div>
+          </div>
+          <div class="actions">
+            <a class="button primary" href="./play/">立即开始</a>
+            <a class="button secondary" href="./updates/">查看更新</a>
+            <a class="button secondary" href="./versions/">历史版本</a>
+            <a class="button secondary" href="./经典坦克大战平衡版v3.8.html">直接打开版本文件</a>
+          </div>
+        </div>
+        <div class="hero-shot" aria-label="游戏主界面截图">
+          <div class="shot-note">
+            <div>
+              <strong>主菜单与规则入口</strong>
+              <span>当前正式入口采用根目录首页 + 独立游玩页 + 更新页结构，便于后续持续发布。</span>
+            </div>
+            <span>截图来源：v3.3 本地验证</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h2>当前版本概览</h2>
+          <p>首页负责展示，游玩入口负责跳转到最新版本，版本记录页负责沉淀更新。后面继续改版时，只需要更新少量位置。</p>
+        </div>
+        <div class="status">
+          <article class="panel">
+            <strong>v3.8</strong>
+            <span>正式入口当前指向版本</span>
+          </article>
+          <article class="panel">
+            <strong>2</strong>
+            <span>支持单人与双人控制方案</span>
+          </article>
+          <article class="panel">
+            <strong>4</strong>
+            <span>地图轮换周期内的场景变化</span>
+          </article>
+          <article class="panel">
+            <strong>3</strong>
+            <span>阶段化 Boss 设计方向</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h2>玩法重点</h2>
+          <p>这版已经不只是原始坦克对射，而是逐步发展成一套带成长、预警和节奏补给的防守玩法。</p>
+        </div>
+        <div class="grid-3">
+          <article class="panel">
+            <h3>战斗节奏</h3>
+            <p>普通关与 Boss 关交替推进，单人模式已加入独立平衡补偿，双人模式保留协作火力与互相分担压力的优势。</p>
+          </article>
+          <article class="panel">
+            <h3>成长系统</h3>
+            <p>Boss 通关后可获得三选一奖励，内容覆盖命数、弹药、暴击、冲刺、基地防守与后续奖励收益。</p>
+          </article>
+          <article class="panel">
+            <h3>场地交互</h3>
+            <p>地图含草地、砖墙、钢墙、高血量墙和基地防守结构，草地区域还能影响敌我视野与战斗信息暴露。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h2>操作与模式</h2>
+          <p>页面入口之外，最重要的是让新玩家一进来就能马上玩。这里把常用按键直接摆在首页。</p>
+        </div>
+        <div class="grid-2">
+          <article class="panel">
+            <h3>玩家 1 默认键位</h3>
+            <ul>
+              <li>`W/A/S/D`：移动</li>
+              <li>`Space`：开火</li>
+              <li>`Shift`：冲刺</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <h3>玩家 2 默认键位</h3>
+            <ul>
+              <li>`8/4/5/6`：移动</li>
+              <li>`9`：开火</li>
+              <li>`3`：冲刺</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h2>最近版本变化</h2>
+          <p>正式发布页只放最近一段的核心变化，完整调整过程继续保留在原始版本说明里。</p>
+        </div>
+        <div class="timeline">
+          <article class="timeline-item">
+            <header>
+              <h3>v3.8</h3>
+              <span>2026-04-30</span>
+            </header>
+            <ul>
+              <li>地图道具停留时间统一提升 50%。</li>
+              <li>`shield` 地图道具钢墙持续时间延长到 15 秒。</li>
+              <li>`shield` 结束后会对基地周围随机 1 格追加 +1 抗击打能力。</li>
+            </ul>
+          </article>
+          <article class="timeline-item">
+            <header>
+              <h3>v3.7 - v3.6</h3>
+              <span>2026-04-29</span>
+            </header>
+            <ul>
+              <li>玩家尺寸进一步缩小到 24，提升钻缝和贴边容错。</li>
+              <li>弹药与护盾图标改为贴附在坦克本体上显示。</li>
+              <li>护盾图标改为随持续时间逐渐下降的液位式表现。</li>
+              <li><a href="./versions/" style="color:#f4c84a;">可在历史版本页中直接打开 v3.7。</a></li>
+            </ul>
+          </article>
+          <article class="timeline-item">
+            <header>
+              <h3>v3.4 - v3.0</h3>
+              <span>2026-04-28 至 2026-04-29</span>
+            </header>
+            <ul>
+              <li>支持自定义键位、输入修正、草地完整隐身与暴击子弹强化。</li>
+              <li>Boss 预警与冲刺逻辑多轮修正，敌军 AI 与追击能力逐步增强。</li>
+              <li>Boss 奖励、地图轮换与排行榜能力进入稳定迭代阶段。</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h2>历史版本</h2>
+          <p>当前正式入口默认进入最新版，上一版稳定版本仍保留可访问入口，方便回看和对比。</p>
+        </div>
+        <div class="grid-2">
+          <article class="panel">
+            <h3>当前正式版本</h3>
+            <p>`v3.8` 作为默认游玩入口，面向当前对外发布。</p>
+            <p><a href="./经典坦克大战平衡版v3.8.html" style="color:#f4c84a;">打开 v3.8</a></p>
+          </article>
+          <article class="panel">
+            <h3>历史版本</h3>
+            <p>`v3.7` 作为可查找的历史版本保留，适合回看之前的手感与表现。</p>
+            <p><a href="./经典坦克大战平衡版v3.7.html" style="color:#f4c84a;">打开 v3.7</a></p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>推荐部署：GitHub Pages 静态站点</span>
+      <span>完整更新记录见根目录版本说明文件</span>
+    </footer>
+  </div>
+</body>
+</html>
