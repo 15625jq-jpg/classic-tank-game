@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8" />
@@ -111,6 +111,29 @@
     display: flex;
     gap: 18px;
     flex-wrap: wrap;
+  }
+  .topbar-tools {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .lang-switch {
+    display: flex;
+    gap: 8px;
+  }
+  .lang-switch button {
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .lang-switch button.active {
+    color: #121212;
+    background: var(--gold);
+    border-color: rgba(244,200,74,0.36);
   }
 
   .hero {
@@ -433,52 +456,55 @@
   }
 </style>
 </head>
-<body>
+<body data-page="home">
   <div class="page">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"></div>
         <div class="brand-text">
           <strong>经典坦克大战平衡版</strong>
-          <span>浏览器双人动作防守游戏</span>
+          <span id="homeBrandSubtitle">浏览器双人动作防守游戏</span>
         </div>
       </div>
-      <nav>
-        <a href="./play/">开始游戏</a>
-        <a href="./updates/">版本更新</a>
-        <a href="./versions/">历史版本</a>
-        <a href="./经典坦克大战平衡版版本调整说明.md">完整记录</a>
-      </nav>
+      <div class="topbar-tools">
+        <nav>
+          <a id="navPlay" href="./play/">开始游戏</a>
+          <a id="navUpdates" href="./updates/">版本更新</a>
+          <a id="navVersions" href="./versions/">历史版本</a>
+          <a id="navRecords" href="./records/">完整记录</a>
+        </nav>
+        <div class="lang-switch" data-language-switch></div>
+      </div>
     </header>
 
     <main>
       <section class="hero">
         <div class="hero-copy">
           <div>
-            <div class="eyebrow">正式发布入口</div>
-            <h1>经典坦克大战平衡版</h1>
-            <p class="lead">
+            <div class="eyebrow" id="homeEyebrow">正式发布入口</div>
+            <h1 id="homeTitle">经典坦克大战平衡版</h1>
+            <p class="lead" id="homeLead">
               围绕单人 / 双人协作、Boss 关压力、地图轮换与操作反馈持续打磨的坦克防守版本。当前正式入口指向
-              <strong>v3.8</strong>，适合直接部署为静态网页并持续迭代。
+              <strong>v3.9</strong>，适合直接部署为静态网页并持续迭代。
             </p>
             <div class="hero-meta">
-              <div class="pill">最新发布：2026-04-30</div>
-              <div class="pill">当前版本：v3.8</div>
+              <div class="pill">最新发布：2026-05-01</div>
+              <div class="pill">当前版本：v3.9</div>
               <div class="pill">支持单人 / 双人</div>
             </div>
           </div>
           <div class="actions">
-            <a class="button primary" href="./play/">立即开始</a>
-            <a class="button secondary" href="./updates/">查看更新</a>
-            <a class="button secondary" href="./versions/">历史版本</a>
-            <a class="button secondary" href="./经典坦克大战平衡版v3.8.html">直接打开版本文件</a>
+              <a class="button primary" id="homeStartButton" href="./play/">立即开始</a>
+              <a class="button secondary" id="homeUpdatesButton" href="./updates/">查看更新</a>
+              <a class="button secondary" id="homeVersionsButton" href="./versions/">历史版本</a>
+              <a class="button secondary" id="homeFileButton" href="./经典坦克大战平衡版v3.9.html">直接打开版本文件</a>
           </div>
         </div>
         <div class="hero-shot" aria-label="游戏主界面截图">
           <div class="shot-note">
             <div>
-              <strong>主菜单与规则入口</strong>
-              <span>当前正式入口采用根目录首页 + 独立游玩页 + 更新页结构，便于后续持续发布。</span>
+              <strong id="homeShotTitle">主菜单与规则入口</strong>
+              <span id="homeShotDesc">当前正式入口采用根目录首页 + 独立游玩页 + 更新页结构，便于后续持续发布。</span>
             </div>
           </div>
         </div>
@@ -486,14 +512,14 @@
 
       <section class="section">
         <div class="section-head">
-          <h2>当前版本概览</h2>
-          <p>把版本入口、玩法范围和内容规模放在一处看清楚，读起来会比之前那组数字卡片顺一点。</p>
+          <h2 id="homeOverviewTitle">当前版本概览</h2>
+          <p id="homeOverviewDesc">把版本入口、玩法范围和内容规模放在一处看清楚，读起来会比之前那组数字卡片顺一点。</p>
         </div>
         <div class="status">
           <article class="panel overview-main">
             <div>
               <span class="overview-kicker">当前正式版本</span>
-              <strong>v3.8</strong>
+              <strong>v3.9</strong>
               <p>首页、游玩入口和历史版本页当前都围绕这一版组织，玩家默认进入的也是这个版本。</p>
             </div>
           </article>
@@ -523,8 +549,8 @@
 
       <section class="section">
         <div class="section-head">
-          <h2>玩法重点</h2>
-          <p>这版已经不只是原始坦克对射，而是逐步发展成一套带成长、预警和节奏补给的防守玩法。</p>
+          <h2 id="homeFocusTitle">玩法重点</h2>
+          <p id="homeFocusDesc">这版已经不只是原始坦克对射，而是逐步发展成一套带成长、预警和节奏补给的防守玩法。</p>
         </div>
         <div class="grid-3">
           <article class="panel">
@@ -544,8 +570,8 @@
 
       <section class="section">
         <div class="section-head">
-          <h2>操作与模式</h2>
-          <p>页面入口之外，最重要的是让新玩家一进来就能马上玩。这里把常用按键直接摆在首页。</p>
+          <h2 id="homeControlsTitle">操作与模式</h2>
+          <p id="homeControlsDesc">页面入口之外，最重要的是让新玩家一进来就能马上玩。这里把常用按键直接摆在首页。</p>
         </div>
         <div class="grid-2">
           <article class="panel">
@@ -569,23 +595,24 @@
 
       <section class="section">
         <div class="section-head">
-          <h2>最近版本变化</h2>
-          <p>正式发布页只放最近一段的核心变化，完整调整过程继续保留在原始版本说明里。</p>
+          <h2 id="homeRecentTitle">最近版本变化</h2>
+          <p id="homeRecentDesc">正式发布页只放最近一段的核心变化，完整调整过程继续保留在原始版本说明里。</p>
         </div>
         <div class="timeline">
           <!-- AUTO_HOME_CURRENT_RELEASE_START -->
           <article class="timeline-item">
             <header>
-              <h3>v3.8</h3>
-              <span>2026-04-30</span>
+              <h3>v3.9</h3>
+              <span>2026-05-01</span>
             </header>
             <ul>
-              <li>地图道具停留时间统一提升 50%。</li>
-              <li>`shield` 地图道具钢墙持续时间延长到 15 秒。</li>
-              <li>`shield` 结束后会对基地周围随机 1 格追加 +1 抗击打能力。</li>
+              <li>新增简体中文、English、日本語、한국어四语界面切换，并在站点与游戏内共用语言记忆。</li>
+              <li>主菜单新增语言选项，规则说明、暂停界面、排行榜、Boss 面板与常用 HUD 文案同步多语言化。</li>
+              <li>发布站首页、游玩页、更新页、历史版本页与完整记录页接入统一语言切换入口。</li>
+              <li>完整记录页保留 Markdown 作为唯一记录源，同时优化为多语言外壳与更稳定的动态展示。</li>
             </ul>
           </article>
-          <!-- AUTO_HOME_CURRENT_RELEASE_END -->
+<!-- AUTO_HOME_CURRENT_RELEASE_END -->
           <article class="timeline-item">
             <header>
               <h3>v3.7 - v3.6</h3>
@@ -614,30 +641,31 @@
 
       <section class="section">
         <div class="section-head">
-          <h2>历史版本</h2>
-          <p>当前正式入口默认进入最新版，上一版稳定版本仍保留可访问入口，方便回看和对比。</p>
+          <h2 id="homeHistoryTitle">历史版本</h2>
+          <p id="homeHistoryDesc">当前正式入口默认进入最新版，上一版稳定版本仍保留可访问入口，方便回看和对比。</p>
         </div>
         <div class="grid-2">
           <!-- AUTO_HOME_HISTORY_START -->
           <article class="panel">
             <h3>当前正式版本</h3>
-            <p>`v3.8` 作为默认游玩入口，面向当前对外发布。</p>
-            <p><a href="./经典坦克大战平衡版v3.8.html" style="color:#f4c84a;">打开 v3.8</a></p>
+            <p>v3.9 作为默认游玩入口，面向当前对外发布。</p>
+            <p><a href="./经典坦克大战平衡版v3.9.html" style="color:#f4c84a;">打开 v3.9</a></p>
           </article>
           <article class="panel">
             <h3>历史版本</h3>
-            <p>`v3.7` 作为可查找的历史版本保留，适合回看之前的手感与表现。</p>
-            <p><a href="./经典坦克大战平衡版v3.7.html" style="color:#f4c84a;">打开 v3.7</a></p>
+            <p>v3.8 作为上一正式版本保留，适合回看此前一轮平衡和表现。</p>
+            <p><a href="./经典坦克大战平衡版v3.8.html" style="color:#f4c84a;">打开 v3.8</a></p>
           </article>
-          <!-- AUTO_HOME_HISTORY_END -->
+<!-- AUTO_HOME_HISTORY_END -->
         </div>
       </section>
     </main>
 
     <footer class="footer">
-      <span>当前站点已提供正式入口、更新页和历史版本页</span>
-      <span>完整更新记录见根目录版本说明文件</span>
+      <span id="homeFooterLeft">当前站点已提供正式入口、更新页、历史版本页与完整记录页</span>
+      <span id="homeFooterRight">完整调整记录可在完整记录页继续查看</span>
     </footer>
   </div>
+  <script src="./site-language.js"></script>
 </body>
 </html>

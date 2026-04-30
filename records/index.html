@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>完整记录 · 经典坦克大战平衡版</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #090a0c;
+    --panel: rgba(18, 21, 27, 0.94);
+    --panel-strong: rgba(22, 26, 33, 0.98);
+    --line: rgba(255, 255, 255, 0.1);
+    --text: #f2f4f8;
+    --muted: #a9b2c2;
+    --gold: #f0c24d;
+    --shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    min-height: 100%;
+    background: linear-gradient(180deg, rgba(9, 10, 12, 0.82), rgba(9, 10, 12, 0.98)), #090a0c;
+    color: var(--text);
+    font-family: Arial, "Microsoft YaHei", sans-serif;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .page {
+    width: min(1240px, calc(100vw - 32px));
+    margin: 0 auto;
+    padding: 24px 0 56px;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background:
+      linear-gradient(135deg, rgba(240, 194, 77, 0.24), rgba(240, 194, 77, 0.08)),
+      #13171d;
+    border: 1px solid var(--line);
+    position: relative;
+  }
+
+  .brand-mark::before,
+  .brand-mark::after {
+    content: "";
+    position: absolute;
+    background: var(--gold);
+  }
+
+  .brand-mark::before {
+    inset: 10px 9px 10px 9px;
+    border-radius: 6px;
+  }
+
+  .brand-mark::after {
+    width: 10px;
+    height: 6px;
+    right: 7px;
+    top: 16px;
+    border-radius: 3px;
+  }
+
+  .brand-text strong {
+    display: block;
+    font-size: 18px;
+  }
+
+  .brand-text span,
+  .topbar nav a {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .topbar nav {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .topbar-tools {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .lang-switch {
+    display: flex;
+    gap: 8px;
+  }
+  .lang-switch button {
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .lang-switch button.active {
+    color: #121212;
+    background: var(--gold);
+    border-color: rgba(240,194,77,0.36);
+  }
+
+  .hero {
+    margin-bottom: 24px;
+    padding: 28px 30px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--panel-strong);
+    box-shadow: var(--shadow);
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  h1 {
+    margin: 18px 0 12px;
+    font-size: clamp(32px, 4vw, 50px);
+    line-height: 1.08;
+  }
+
+  .hero p {
+    max-width: 62ch;
+    margin: 0;
+    color: #d5dbe7;
+    font-size: 17px;
+    line-height: 1.8;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .doc,
+  .toc {
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    box-shadow: var(--shadow);
+  }
+
+  .doc {
+    padding: 28px 30px;
+  }
+
+  .toc {
+    position: sticky;
+    top: 20px;
+    padding: 20px;
+  }
+
+  .toc h2 {
+    margin: 0 0 12px;
+    font-size: 18px;
+  }
+
+  .toc ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 8px;
+  }
+
+  .toc a {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: #d7ddea;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  }
+
+  .toc a:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .doc-title {
+    margin: 0 0 8px;
+    font-size: 34px;
+  }
+
+  .doc-intro {
+    margin: 0 0 24px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .version-group + .version-group {
+    margin-top: 26px;
+  }
+
+  .version-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .version-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(240, 194, 77, 0.12);
+    border: 1px solid rgba(240, 194, 77, 0.18);
+    color: #f3cf6f;
+    font-size: 13px;
+  }
+
+  .version-header h2 {
+    margin: 0;
+    font-size: 30px;
+  }
+
+  .section-card {
+    padding: 18px 20px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .section-card + .section-card {
+    margin-top: 12px;
+  }
+
+  .section-card h3 {
+    margin: 0 0 12px;
+    font-size: 20px;
+  }
+
+  .section-card h4 {
+    margin: 18px 0 8px;
+    font-size: 17px;
+    color: #f1f4fa;
+  }
+
+  .section-card p {
+    margin: 0;
+    color: #d7ddea;
+    line-height: 1.85;
+  }
+
+  .section-card p + p {
+    margin-top: 10px;
+  }
+
+  .section-card ul,
+  .section-card ol {
+    margin: 10px 0 0;
+    padding-left: 22px;
+    color: #d7ddea;
+    line-height: 1.85;
+  }
+
+  .section-card li + li {
+    margin-top: 4px;
+  }
+
+  .section-card code {
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 0.95em;
+  }
+
+  .status {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .error {
+    padding: 16px;
+    border-radius: 8px;
+    background: rgba(255, 110, 110, 0.1);
+    border: 1px solid rgba(255, 110, 110, 0.22);
+    color: #ffd6d6;
+  }
+
+  @media (max-width: 980px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+
+    .toc {
+      position: static;
+      order: -1;
+    }
+  }
+</style>
+</head>
+<body data-page="records" data-game-title="经典坦克大战平衡版">
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div class="brand-text">
+          <strong>经典坦克大战平衡版</strong>
+          <span id="recordBrandSubtitle">完整版本记录页</span>
+        </div>
+      </div>
+      <div class="topbar-tools">
+        <nav>
+          <a id="recordNavHome" href="../">首页</a>
+          <a id="recordNavPlay" href="../play/">开始游戏</a>
+          <a id="recordNavUpdates" href="../updates/">版本更新</a>
+          <a id="recordNavVersions" href="../versions/">历史版本</a>
+        </nav>
+        <div class="lang-switch" data-language-switch></div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow" id="recordEyebrow">完整记录</div>
+      <h1 id="recordHeroTitle">完整版本记录</h1>
+      <p id="recordHeroDesc">这里以更适合阅读的排版展示版本说明内容。记录源仍然是根目录的版本说明 Markdown 文件，现有记录已经按版本从新到旧整理，后续新版本也会继续写在最上方。</p>
+    </section>
+
+    <div class="layout">
+      <main class="doc">
+        <div id="recordContent">
+          <p class="status" id="recordLoadingStatus">正在读取版本记录...</p>
+        </div>
+      </main>
+      <aside class="toc">
+        <h2 id="recordTocTitle">版本导航</h2>
+        <ul id="recordNav">
+          <li><span class="status" id="recordNavLoadingStatus">正在生成导航...</span></li>
+        </ul>
+      </aside>
+    </div>
+  </div>
+
+<script src="../site-language.js"></script>
+<script>
+(() => {
+  const contentEl = document.getElementById("recordContent");
+  const navEl = document.getElementById("recordNav");
+  let parsedCache = null;
+  let loadError = null;
+
+  function getRecordStrings() {
+    return window.tankSiteLanguage?.getStrings?.("records") || {
+      loading: "正在读取版本记录...",
+      navLoading: "正在生成导航...",
+      orderChip: "按版本号倒序显示",
+      loadFailed: "完整记录加载失败"
+    };
+  }
+
+  function escapeHtml(text) {
+    return String(text)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function renderInline(text) {
+    return escapeHtml(text).replace(/`([^`]+)`/g, "<code>$1</code>");
+  }
+
+  function versionWeight(version) {
+    return version
+      .replace(/^v/i, "")
+      .split(".")
+      .map(part => parseInt(part, 10) || 0);
+  }
+
+  function compareVersionDesc(a, b) {
+    const left = versionWeight(a);
+    const right = versionWeight(b);
+    const len = Math.max(left.length, right.length);
+    for (let i = 0; i < len; i += 1) {
+      const diff = (right[i] || 0) - (left[i] || 0);
+      if (diff !== 0) return diff;
+    }
+    return 0;
+  }
+
+  function normalizeSectionBody(lines) {
+    return lines
+      .map(line => line.trimEnd())
+      .filter((line, index, arr) => !(line.trim() === "" && arr[index - 1]?.trim() === ""));
+  }
+
+  function parseVersionSections(markdown) {
+    const lines = markdown.replace(/\r/g, "").split("\n");
+    const nonEmpty = lines.map(line => line.trim()).filter(Boolean);
+    const title = (nonEmpty[0] || "经典坦克大战平衡版版本调整说明").replace(/^#+\s*/, "");
+    const intro = (nonEmpty[1] || "版本记录将按版本号从新到旧整理显示。").replace(/^#+\s*/, "");
+
+    const headingRegex = /^(?:##\s+|(\d+)\.\s+)(v\d+(?:\.\d+)+)\s+(.+)$/i;
+    const sections = [];
+    let current = null;
+
+    for (const rawLine of lines) {
+      const line = rawLine.trimEnd();
+      const trimmed = line.trim();
+      if (!trimmed) {
+        if (current) current.body.push("");
+        continue;
+      }
+      if (trimmed === title || trimmed === intro || trimmed === `# ${title}`) {
+        continue;
+      }
+
+      const match = trimmed.match(headingRegex);
+      if (match) {
+        if (current) {
+          current.body = normalizeSectionBody(current.body);
+          sections.push(current);
+        }
+        current = {
+          version: match[2],
+          title: `${match[2]} ${match[3]}`,
+          body: []
+        };
+        continue;
+      }
+
+      if (current) {
+        current.body.push(trimmed);
+      }
+    }
+
+    if (current) {
+      current.body = normalizeSectionBody(current.body);
+      sections.push(current);
+    }
+
+    const groups = new Map();
+    for (const section of sections) {
+      if (!groups.has(section.version)) {
+        groups.set(section.version, []);
+      }
+      groups.get(section.version).push(section);
+    }
+
+    const orderedVersions = Array.from(groups.keys()).sort(compareVersionDesc);
+    return {
+      title,
+      intro,
+      groups: orderedVersions.map(version => ({
+        version,
+        sections: groups.get(version)
+      }))
+    };
+  }
+
+  function renderLoading() {
+    const strings = getRecordStrings();
+    contentEl.innerHTML = `<p class="status">${renderInline(strings.loading)}</p>`;
+    navEl.innerHTML = `<li><span class="status">${renderInline(strings.navLoading)}</span></li>`;
+  }
+
+  function renderBody(lines) {
+    const html = [];
+    let paragraph = [];
+    let listType = null;
+
+    function flushParagraph() {
+      if (paragraph.length) {
+        html.push(`<p>${paragraph.map(renderInline).join("<br>")}</p>`);
+        paragraph = [];
+      }
+    }
+
+    function closeList() {
+      if (listType) {
+        html.push(listType === "ul" ? "</ul>" : "</ol>");
+        listType = null;
+      }
+    }
+
+    function ensureList(type) {
+      if (listType === type) return;
+      closeList();
+      html.push(type === "ul" ? "<ul>" : "<ol>");
+      listType = type;
+    }
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line) {
+        flushParagraph();
+        closeList();
+        continue;
+      }
+
+      const h3Legacy = line.match(/^\d+\.\d+\s+(.+)$/);
+      if (/^###\s+/.test(line) || h3Legacy) {
+        flushParagraph();
+        closeList();
+        const text = line.replace(/^###\s+/, "").replace(/^\d+\.\d+\s+/, "");
+        html.push(`<h4>${renderInline(text)}</h4>`);
+        continue;
+      }
+
+      if (/^- /.test(line)) {
+        flushParagraph();
+        ensureList("ul");
+        html.push(`<li>${renderInline(line.slice(2))}</li>`);
+        continue;
+      }
+
+      const ordered = line.match(/^\d+\.\s+(.+)$/);
+      if (ordered) {
+        flushParagraph();
+        ensureList("ol");
+        html.push(`<li>${renderInline(ordered[1])}</li>`);
+        continue;
+      }
+
+      closeList();
+      paragraph.push(line);
+    }
+
+    flushParagraph();
+    closeList();
+    return html.join("");
+  }
+
+  function renderRecords(parsed) {
+    const strings = getRecordStrings();
+    const navItems = [];
+    const sectionsHtml = parsed.groups.map(group => {
+      const anchor = `version-${group.version.replace(/\./g, "-")}`;
+      navItems.push(`<li><a href="#${anchor}">${group.version}</a></li>`);
+      const cards = group.sections.map(section => `
+        <article class="section-card">
+          <h3>${renderInline(section.title)}</h3>
+          ${renderBody(section.body)}
+        </article>
+      `).join("");
+      return `
+        <section class="version-group" id="${anchor}">
+          <div class="version-header">
+            <h2>${renderInline(group.version)}</h2>
+            <span class="version-chip">${renderInline(strings.orderChip)}</span>
+          </div>
+          ${cards}
+        </section>
+      `;
+    }).join("");
+
+    contentEl.innerHTML = `
+      <h1 class="doc-title">${renderInline(parsed.title)}</h1>
+      <p class="doc-intro">${renderInline(parsed.intro)}</p>
+      ${sectionsHtml}
+    `;
+    navEl.innerHTML = navItems.join("");
+  }
+
+  function renderError(error) {
+    const strings = getRecordStrings();
+    contentEl.innerHTML = `<div class="error">${renderInline(strings.loadFailed)}：${renderInline(String(error.message || error))}</div>`;
+    navEl.innerHTML = `<li><span class="status">${renderInline(strings.loadFailed)}</span></li>`;
+  }
+
+  window.addEventListener("tank-language-change", () => {
+    if (loadError) {
+      renderError(loadError);
+      return;
+    }
+    if (parsedCache) {
+      renderRecords(parsedCache);
+      return;
+    }
+    renderLoading();
+  });
+
+  renderLoading();
+
+  fetch("../经典坦克大战平衡版版本调整说明.md")
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.text();
+    })
+    .then(text => {
+      parsedCache = parseVersionSections(text);
+      renderRecords(parsedCache);
+    })
+    .catch(error => {
+      loadError = error;
+      renderError(error);
+    });
+})();
+</script>
+</body>
+</html>

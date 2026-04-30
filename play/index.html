@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>进入游戏 · 经典坦克大战平衡版</title>
-<meta http-equiv="refresh" content="0; url=../经典坦克大战平衡版v3.8.html" />
+<meta http-equiv="refresh" content="0; url=../经典坦克大战平衡版v3.9.html" />
 <style>
   html, body {
     margin: 0;
@@ -49,13 +49,33 @@
     font-weight: 700;
     text-decoration: none;
   }
+  .lang-switch {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 18px;
+  }
+  .lang-switch button {
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    color: #b8c0cf;
+    border-radius: 999px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .lang-switch button.active {
+    color: #1b1403;
+    background: #f0c24d;
+  }
 </style>
 </head>
-<body>
+<body data-page="play">
   <main>
-    <h1>正在进入游戏</h1>
-    <p>当前正式入口已指向 <strong>v3.8</strong>。如果浏览器未自动跳转，请使用下面的按钮继续进入。</p>
-    <a href="../经典坦克大战平衡版v3.8.html">打开最新版本</a>
+    <h1 id="playTitle">正在进入游戏</h1>
+    <p id="playDesc">当前正式入口已指向 <strong>v3.9</strong>。如果浏览器未自动跳转，请使用下面的按钮继续进入。</p>
+    <a id="playButton" href="../经典坦克大战平衡版v3.9.html">打开最新版本</a>
+    <div class="lang-switch" data-language-switch></div>
   </main>
+  <script src="../site-language.js"></script>
 </body>
 </html>

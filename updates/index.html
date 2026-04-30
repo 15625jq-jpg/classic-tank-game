@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8" />
@@ -46,6 +46,29 @@
   .topbar a {
     color: var(--muted);
     text-decoration: none;
+  }
+  .topbar-tools {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .lang-switch {
+    display: flex;
+    gap: 8px;
+  }
+  .lang-switch button {
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .lang-switch button.active {
+    color: #1d1503;
+    background: var(--gold);
+    border-color: rgba(240,194,77,0.36);
   }
 
   h1 {
@@ -119,21 +142,37 @@
   }
 </style>
 </head>
-<body>
+<body data-page="updates" data-game-title="经典坦克大战平衡版">
   <div class="page">
     <div class="topbar">
-      <a href="../">返回首页</a>
-      <a href="../versions/">历史版本</a>
-      <a href="../经典坦克大战平衡版版本调整说明.md">查看完整版本说明</a>
+      <div class="topbar-tools">
+        <a id="updateNavHome" href="../">返回首页</a>
+        <a id="updateNavVersions" href="../versions/">历史版本</a>
+        <a id="updateNavRecords" href="../records/">完整记录</a>
+      </div>
+      <div class="lang-switch" data-language-switch></div>
     </div>
 
-    <h1>版本更新</h1>
-    <p class="intro">
+    <h1 id="updateTitle">版本更新</h1>
+    <p class="intro" id="updateIntro">
       这里保留正式发布入口需要展示的近期更新摘要。更细的数值与调整细节，继续维护在根目录的完整版本说明里，适合后续持续追加。
     </p>
 
     <!-- AUTO_UPDATE_RELEASES_START -->
-    <article class="entry">
+<article class="entry">
+      <header>
+        <h2>v3.9</h2>
+        <span>2026-05-01</span>
+      </header>
+      <ul>
+        <li>新增简体中文、English、日本語、한국어四语界面切换，并在站点与游戏内共用语言记忆。</li>
+        <li>主菜单新增语言选项，规则说明、暂停界面、排行榜、Boss 面板与常用 HUD 文案同步多语言化。</li>
+        <li>发布站首页、游玩页、更新页、历史版本页与完整记录页接入统一语言切换入口。</li>
+        <li>完整记录页保留 Markdown 作为唯一记录源，同时优化为多语言外壳与更稳定的动态展示。</li>
+      </ul>
+    </article>
+
+<article class="entry">
       <header>
         <h2>v3.8</h2>
         <span>2026-04-30</span>
@@ -145,7 +184,7 @@
         <li>连续拾取 `shield` 时，仅刷新持续时间，并只结算 1 次结束后的加固奖励。</li>
       </ul>
     </article>
-    <!-- AUTO_UPDATE_RELEASES_END -->
+<!-- AUTO_UPDATE_RELEASES_END -->
 
     <article class="entry">
       <header>
@@ -192,15 +231,16 @@
       <ul>
         <li>完成排行榜、Boss 三阶段平衡、掉落机制、地图轮换、冲刺系统等基础框架。</li>
         <li>规则说明、历史排行、难度区分和主菜单功能逐步成型。</li>
-        <li>完整记录仍可在根目录《版本调整说明》中继续追溯。</li>
+        <li>完整记录页会继续汇总并展示全部历史版本内容。</li>
       </ul>
     </article>
 
     <div class="actions">
-      <a class="button primary" href="../play/">进入游戏</a>
-      <a class="button secondary" href="../versions/">历史版本</a>
-      <a class="button secondary" href="../经典坦克大战平衡版版本调整说明.md">打开完整版本说明</a>
+      <a class="button primary" id="updatePlayButton" href="../play/">进入游戏</a>
+      <a class="button secondary" id="updateVersionsButton" href="../versions/">历史版本</a>
+      <a class="button secondary" id="updateRecordsButton" href="../records/">打开完整记录</a>
     </div>
   </div>
+  <script src="../site-language.js"></script>
 </body>
 </html>

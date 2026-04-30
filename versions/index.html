@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8" />
@@ -46,6 +46,29 @@
   .topbar a {
     color: var(--muted);
     text-decoration: none;
+  }
+  .topbar-tools {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .lang-switch {
+    display: flex;
+    gap: 8px;
+  }
+  .lang-switch button {
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .lang-switch button.active {
+    color: #1d1503;
+    background: var(--gold);
+    border-color: rgba(240,194,77,0.36);
   }
 
   h1 {
@@ -118,27 +141,41 @@
   }
 </style>
 </head>
-<body>
+<body data-page="versions" data-game-title="经典坦克大战平衡版">
   <div class="page">
     <div class="topbar">
-      <a href="../">返回首页</a>
-      <a href="../updates/">查看更新</a>
+      <div class="topbar-tools">
+        <a id="versionNavHome" href="../">返回首页</a>
+        <a id="versionNavUpdates" href="../updates/">查看更新</a>
+      </div>
+      <div class="lang-switch" data-language-switch></div>
     </div>
 
-    <h1>历史版本</h1>
-    <p class="intro">
+    <h1 id="versionTitle">历史版本</h1>
+    <p class="intro" id="versionIntro">
       这里保留正式发布入口以外仍可访问的历史版本。默认推荐游玩最新版，历史版本主要用于回看、对比和备份。
     </p>
 
     <!-- AUTO_VERSION_ENTRIES_START -->
-    <article class="entry">
+<article class="entry">
+      <header>
+        <h2>v3.9</h2>
+        <span class="meta">当前正式版本</span>
+      </header>
+      <p>当前默认游玩入口，本次重点包括：新增简体中文、English、日本語、한국어四语界面切换，并在站点与游戏内共用语言记忆。</p>
+      <div class="actions">
+        <a class="button primary" href="../经典坦克大战平衡版v3.9.html">打开 v3.9</a>
+      </div>
+    </article>
+
+<article class="entry">
       <header>
         <h2>v3.8</h2>
-        <span class="meta">当前正式版本</span>
+        <span class="meta">历史版本</span>
       </header>
       <p>当前默认游玩入口，包含道具停留时间延长与 `shield` 地图道具强化等最新调整。</p>
       <div class="actions">
-        <a class="button primary" href="../经典坦克大战平衡版v3.8.html">打开 v3.8</a>
+        <a class="button secondary" href="../经典坦克大战平衡版v3.8.html">打开 v3.8</a>
       </div>
     </article>
 
@@ -152,7 +189,8 @@
         <a class="button secondary" href="../经典坦克大战平衡版v3.7.html">打开 v3.7</a>
       </div>
     </article>
-    <!-- AUTO_VERSION_ENTRIES_END -->
+<!-- AUTO_VERSION_ENTRIES_END -->
   </div>
+  <script src="../site-language.js"></script>
 </body>
 </html>
