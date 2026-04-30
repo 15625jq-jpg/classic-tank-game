@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>版本更新 · 经典坦克大战平衡版</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0a0b0d;
+    --panel: rgba(20, 23, 29, 0.94);
+    --line: rgba(255,255,255,0.12);
+    --text: #f2f4f8;
+    --muted: #acb5c5;
+    --gold: #f0c24d;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, "Microsoft YaHei", sans-serif;
+  }
+
+  body {
+    padding: 28px 16px 48px;
+  }
+
+  .page {
+    width: min(960px, 100%);
+    margin: 0 auto;
+  }
+
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .topbar a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  h1 {
+    margin: 0 0 10px;
+    font-size: 34px;
+  }
+
+  .intro {
+    margin: 0 0 22px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .entry {
+    margin-bottom: 14px;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+  }
+
+  .entry header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .entry h2 {
+    margin: 0;
+    font-size: 22px;
+  }
+
+  .entry span {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .entry ul {
+    margin: 0;
+    padding-left: 18px;
+    line-height: 1.8;
+    color: #d7ddea;
+  }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 26px;
+  }
+
+  .button {
+    display: inline-block;
+    padding: 12px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+  }
+
+  .button.primary {
+    background: var(--gold);
+    color: #1d1503;
+  }
+
+  .button.secondary {
+    border: 1px solid var(--line);
+    color: var(--text);
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <a href="../">返回首页</a>
+      <a href="../versions/">历史版本</a>
+      <a href="../经典坦克大战平衡版版本调整说明.md">查看完整版本说明</a>
+    </div>
+
+    <h1>版本更新</h1>
+    <p class="intro">
+      这里保留正式发布入口需要展示的近期更新摘要。更细的数值与调整细节，继续维护在根目录的完整版本说明里，适合后续持续追加。
+    </p>
+
+    <article class="entry">
+      <header>
+        <h2>v3.8</h2>
+        <span>2026-04-30</span>
+      </header>
+      <ul>
+        <li>地图道具未拾取停留时间由 900 帧提升到 1350 帧。</li>
+        <li>`shield` 地图道具钢墙保护持续时间提升到 900 帧，约 15 秒。</li>
+        <li>`shield` 效果恢复后，会对基地周围随机 1 格追加 +1 抗击打能力。</li>
+        <li>连续拾取 `shield` 时，仅刷新持续时间，并只结算 1 次结束后的加固奖励。</li>
+      </ul>
+    </article>
+
+    <article class="entry">
+      <header>
+        <h2>v3.7 - v3.6</h2>
+        <span>2026-04-29</span>
+      </header>
+      <ul>
+        <li>玩家尺寸调整为 24 x 24，增强狭窄通道通行与贴边手感。</li>
+        <li>弹药和无敌护盾改为贴附在坦克身上的图标，并提升缺弹提示可读性。</li>
+        <li>护盾图标改为液位下降式表现，更直观反映剩余保护时间。</li>
+        <li>历史版本页中可直接找到并打开 `v3.7`。</li>
+      </ul>
+    </article>
+
+    <article class="entry">
+      <header>
+        <h2>v3.5 - v3.3</h2>
+        <span>2026-04-29</span>
+      </header>
+      <ul>
+        <li>强化 Boss 奖励数值，补充填弹时间、冲刺冷却和子弹速度成长选项。</li>
+        <li>基地强化奖励从单块提升为多块加固，并保留可见反馈。</li>
+        <li>输入控制和方向接管逻辑经过多轮修正，降低卡方向和误操作问题。</li>
+      </ul>
+    </article>
+
+    <article class="entry">
+      <header>
+        <h2>v3.2 - v3.0</h2>
+        <span>2026-04-28</span>
+      </header>
+      <ul>
+        <li>敌军 AI 和 Boss 追击能力随关卡推进逐步增强。</li>
+        <li>Boss 预警时间压缩，紫电突袭者预警方向与实际冲刺方向对齐。</li>
+        <li>草地区域改为真正影响视野，子弹和暴击颜色逻辑完成区分。</li>
+      </ul>
+    </article>
+
+    <article class="entry">
+      <header>
+        <h2>v2.8 及更早版本</h2>
+        <span>2026-04-22 至 2026-04-28</span>
+      </header>
+      <ul>
+        <li>完成排行榜、Boss 三阶段平衡、掉落机制、地图轮换、冲刺系统等基础框架。</li>
+        <li>规则说明、历史排行、难度区分和主菜单功能逐步成型。</li>
+        <li>完整记录仍可在根目录《版本调整说明》中继续追溯。</li>
+      </ul>
+    </article>
+
+    <div class="actions">
+      <a class="button primary" href="../play/">进入游戏</a>
+      <a class="button secondary" href="../versions/">历史版本</a>
+      <a class="button secondary" href="../经典坦克大战平衡版版本调整说明.md">打开完整版本说明</a>
+    </div>
+  </div>
+</body>
+</html>
