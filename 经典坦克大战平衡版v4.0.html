@@ -201,8 +201,8 @@
         next: "准备进入下一关..."
       },
       reward: {
-        title: "Boss奖励 三选一",
-        prompt: "按 1 / 2 / 3 选择奖励",
+        title: "Boss奖励",
+        prompt: "按 {keys} 选择奖励",
         life1: "全体 +1 命",
         life2: "血量最少玩家 +2 命",
         baseShield: "基地周围随机三块砖永久 +1 抗打次数",
@@ -211,7 +211,7 @@
         doubleDamage: "全体 +10% 概率造成 2 点伤害",
         reloadFaster: "全体填弹时间 -0.5s",
         dashFaster: "全体冲刺冷却 -1s",
-        extraBossReward: "下次Boss通关额外加一次3选1",
+        extraBossReward: "下次Boss奖励改为4选1",
         lifeTransfer: "高血量玩家 -1 命，另一人 +2~4 命"
       },
       result: {
@@ -425,8 +425,8 @@
         next: "Preparing the next stage..."
       },
       reward: {
-        title: "Boss reward · Pick 1 of 3",
-        prompt: "Press 1 / 2 / 3 to choose",
+        title: "Boss reward",
+        prompt: "Press {keys} to choose",
         life1: "+1 life for everyone",
         life2: "+2 lives to the lowest HP player",
         baseShield: "Three random base bricks permanently gain +1 durability",
@@ -435,7 +435,7 @@
         doubleDamage: "+10% chance to deal 2 damage",
         reloadFaster: "-0.5s reload time for everyone",
         dashFaster: "-1s dash cooldown for everyone",
-        extraBossReward: "Next boss grants one extra 3-choice reward",
+        extraBossReward: "Next boss reward becomes 4 choices",
         lifeTransfer: "Highest HP player -1 life, the other gains +2~4"
       },
       result: {
@@ -649,8 +649,8 @@
         next: "次のステージを準備中..."
       },
       reward: {
-        title: "Boss報酬 3択",
-        prompt: "1 / 2 / 3 で選択",
+        title: "Boss報酬",
+        prompt: "{keys} で選択",
         life1: "全員 +1 残機",
         life2: "最も少ないプレイヤーに +2 残機",
         baseShield: "基地周囲のレンガ3枚に永続 +1 耐久",
@@ -659,7 +659,7 @@
         doubleDamage: "全員 +10% で 2 ダメージ",
         reloadFaster: "全員の装填時間 -0.5秒",
         dashFaster: "全員のダッシュCD -1秒",
-        extraBossReward: "次のBoss後に追加で3択報酬",
+        extraBossReward: "次のBoss報酬が4択になる",
         lifeTransfer: "高HP側 -1 残機、もう一方 +2~4"
       },
       result: {
@@ -873,8 +873,8 @@
         next: "다음 스테이지 준비 중..."
       },
       reward: {
-        title: "Boss 보상 · 3개 중 1개",
-        prompt: "1 / 2 / 3 키로 선택",
+        title: "Boss 보상",
+        prompt: "{keys} 키로 선택",
         life1: "전원 +1 목숨",
         life2: "가장 적은 플레이어 +2 목숨",
         baseShield: "기지 주변 벽돌 3칸에 영구 +1 내구",
@@ -883,7 +883,7 @@
         doubleDamage: "전원 10% 확률로 2 피해",
         reloadFaster: "전원 재장전 시간 -0.5초",
         dashFaster: "전원 대시 쿨다운 -1초",
-        extraBossReward: "다음 Boss 클리어 시 추가 3선택 보상",
+        extraBossReward: "다음 Boss 보상이 4지선다로 변경",
         lifeTransfer: "체력 높은 플레이어 -1, 다른 쪽 +2~4"
       },
       result: {
@@ -2806,7 +2806,8 @@
 
     draw() {
       if (!this.alive) return;
-      const concealedInGrass = !this.isPlayer && rectTouchesTile(this.getRect(), GRASS);
+      const grassPulseVisible = !this.isPlayer && rectTouchesTile(this.getRect(), GRASS) && (state.frame % 30) < 6;
+      const concealedInGrass = !this.isPlayer && rectTouchesTile(this.getRect(), GRASS) && !grassPulseVisible;
       if (concealedInGrass) return;
 
       if (this.isPlayer && this.playerDashFrames > 0) {
@@ -2836,7 +2837,7 @@
 
       ctx.restore();
 
-      if (!concealedInGrass && this.enemyType.startsWith("boss") && this.bossCastTimer > 0) {
+      if ((!concealedInGrass || grassPulseVisible) && this.enemyType.startsWith("boss") && this.bossCastTimer > 0) {
         const cx = this.x + this.w / 2;
         const cy = this.y + this.h / 2;
         const pulse = 0.7 + (Math.sin(state.frame * 0.35) + 1) * 0.15;
@@ -3209,8 +3210,8 @@
 
   function pickRandomPowerupType() {
     return isSinglePlayerMode()
-      ? pick(["shield", "bomb", "freeze", "star", "life", "ammo", "ammo", "life"])
-      : pick(["shield", "bomb", "freeze", "star", "life", "ammo"]);
+      ? pick(["shield", "bomb", "freeze", "star", "life", "ammo", "ammo", "life", "shield"])
+      : pick(["shield", "bomb", "freeze", "star", "life", "ammo", "shield"]);
   }
 
   function spawnPowerup(forcedType = null) {
@@ -3257,6 +3258,7 @@
     } else if (type === "ammo") {
       for (const p of players) {
         if (p.alive) {
+          p.ammoCap = Math.min(MAX_AMMO_CAP, p.ammoCap + 1);
           p.isReloading = false;
           p.reloadTimer = 0;
           p.ammo = p.ammoCap;
@@ -3341,7 +3343,7 @@
         id: "extraBossReward",
         text: t("reward.extraBossReward"),
         apply() {
-          state.pendingExtraBossRewards += 1;
+          state.pendingExtraBossRewards = 1;
         }
       },
       {
@@ -3361,7 +3363,8 @@
       }
     ];
 
-    rewardChoices = [...pool].sort(() => Math.random() - 0.5).slice(0, 3);
+    const choiceCount = 3 + Math.min(1, state.pendingExtraBossRewards);
+    rewardChoices = [...pool].sort(() => Math.random() - 0.5).slice(0, choiceCount);
     state.rewardChoices = rewardChoices;
   }
 
@@ -3373,7 +3376,7 @@
       return false;
     }
     state.pendingBossSupply = pickSupportPowerup();
-    state.rewardRoundsRemaining = 1 + state.pendingExtraBossRewards;
+    state.rewardRoundsRemaining = 1;
     state.pendingExtraBossRewards = 0;
     buildRewardChoices();
     state.screen = "reward";
@@ -4162,22 +4165,31 @@
   }
 
   function drawReward() {
+    const choiceCount = state.rewardChoices.length;
+    const boxX = 70;
+    const boxY = 140;
+    const cardX = 110;
+    const cardStartY = 235;
+    const cardGap = 82;
+    const cardHeight = 62;
+    const promptY = cardStartY + choiceCount * cardGap + 22;
+    const boxH = Math.max(430, promptY - boxY + 45);
     ctx.fillStyle = "rgba(0,0,0,0.8)";
-    ctx.fillRect(70, 150, 700, 430);
+    ctx.fillRect(boxX, boxY, 700, boxH);
     ctx.strokeStyle = "#fff";
-    ctx.strokeRect(70, 150, 700, 430);
+    ctx.strokeRect(boxX, boxY, 700, boxH);
 
     ctx.fillStyle = "#fff";
     ctx.font = "34px Arial";
     ctx.fillText(t("reward.title"), 225, 205);
 
-    for (let i = 0; i < state.rewardChoices.length; i++) {
-      const x = 110;
-      const y = 255 + i * 100;
+    for (let i = 0; i < choiceCount; i++) {
+      const x = cardX;
+      const y = cardStartY + i * cardGap;
       ctx.fillStyle = "rgba(255,255,255,0.08)";
-      ctx.fillRect(x, y - 30, 620, 62);
+      ctx.fillRect(x, y - 30, 620, cardHeight);
       ctx.strokeStyle = "#fff";
-      ctx.strokeRect(x, y - 30, 620, 62);
+      ctx.strokeRect(x, y - 30, 620, cardHeight);
 
       ctx.fillStyle = "#fff";
       ctx.font = "24px Arial";
@@ -4185,7 +4197,7 @@
     }
 
     ctx.font = "24px Arial";
-    ctx.fillText(t("reward.prompt"), 250, 535);
+    ctx.fillText(t("reward.prompt", { keys: state.rewardChoices.map((_, i) => i + 1).join(" / ") }), 250, promptY);
   }
 
   function drawGameOver() {
@@ -4498,6 +4510,7 @@
       if (e.key === "1" || e.code === "Digit1" || e.code === "Numpad1") applyRewardChoice(0);
       if (e.key === "2" || e.code === "Digit2" || e.code === "Numpad2") applyRewardChoice(1);
       if (e.key === "3" || e.code === "Digit3" || e.code === "Numpad3") applyRewardChoice(2);
+      if (e.key === "4" || e.code === "Digit4" || e.code === "Numpad4") applyRewardChoice(3);
       return;
     }
 
