@@ -14,6 +14,7 @@
 
 ## 当前版本文件
 
+- ``经典坦克大战平衡版v4.0.html``
 - ``经典坦克大战平衡版v3.9.html``
 - ``经典坦克大战平衡版v3.8.html``
 - ``经典坦克大战平衡版v3.7.html``
@@ -36,8 +37,9 @@ versions/
 经典坦克大战平衡版v3.7.html
 经典坦克大战平衡版v3.8.html
 经典坦克大战平衡版v3.9.html
+经典坦克大战平衡版v4.0.html
 index.html
-playtest-v3.3-menu.png
+playtest-v3.9-menu.png
 README.md
 site-language.js
 ```
