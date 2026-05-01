@@ -18,17 +18,17 @@
         navVersions: "历史版本",
         navRecords: "完整记录",
         eyebrow: "正式发布入口",
-        lead: "围绕单人 / 双人协作、Boss 关压力、地图轮换与操作反馈持续打磨的坦克防守版本。当前正式入口指向 <strong>{version}</strong>，后续版本会继续在这套发布页上迭代。",
+        lead: "围绕单人 / 双人协作、Boss 关压力、地图轮换与操作反馈持续打磨的坦克防守版本。当前正式入口指向 <strong>{version}</strong>，这一版重点补强了无敌反馈、草丛潜伏可读性、Boss 奖励选择和基地砖成长表现。",
         start: "立即开始",
         updates: "查看更新",
         versions: "历史版本",
         openFile: "直接打开版本文件",
         shotTitle: "主菜单与规则入口",
-        shotDesc: "首页、独立游玩页、更新页和完整记录页已经分开整理，后续查看和发布都会更顺手。",
+        shotDesc: "主菜单、游玩入口、更新摘要和完整记录已经拆分整理，这一版也把对外展示内容同步到了最新平衡状态。",
         overviewTitle: "当前版本概览",
-        overviewDesc: "把默认入口、玩法规模和当前内容重点放在一处，进站后就能很快看清楚这版在玩什么。",
+        overviewDesc: "把默认入口、玩法规模和当前重点放在一处，进站后就能很快看清这版的核心变化和主打体验。",
         focusTitle: "玩法重点",
-        focusDesc: "这版已经不只是原始坦克对射，而是逐步发展成一套带成长、预警和节奏补给的防守玩法。",
+        focusDesc: "这版已经不只是原始坦克对射，而是逐步发展成一套带成长、预警、潜伏对抗和节奏补给的防守玩法。",
         controlsTitle: "操作与模式",
         controlsDesc: "页面入口之外，最重要的是让新玩家一进来就能马上玩。这里把常用按键直接摆在首页。",
         recentTitle: "最近版本变化",
@@ -56,12 +56,12 @@
           {
             label: "地图轮换",
             title: "4 张地图",
-            desc: "场景会按轮换周期切换，避免每局都落在同一套地形节奏里。"
+            desc: "场景会按轮换周期切换，草丛、墙体和基地周边结构也会一起改变战斗节奏。"
           },
           {
             label: "Boss 设计",
             title: "3 类路线",
-            desc: "当前版本已经把追击、弹幕和干扰型 Boss 玩法区分得比较明确。"
+            desc: "当前版本已经把追击、弹幕和干扰型 Boss 玩法区分得比较明确，并把奖励选择扩展到了更直观的 4 选 1。"
           }
         ],
         focusCards: [
@@ -71,11 +71,11 @@
           },
           {
             title: "成长系统",
-            desc: "Boss 通关后可获得三选一奖励，内容覆盖命数、弹药、暴击、冲刺、基地防守与后续奖励收益。"
+            desc: "Boss 通关后会提供更直观的多选强化，内容覆盖命数、弹药、暴击、冲刺、基地防守与后续奖励收益。"
           },
           {
             title: "场地交互",
-            desc: "地图含草地、砖墙、钢墙、高血量墙和基地防守结构，草地区域还能影响敌我视野与战斗信息暴露。"
+            desc: "地图含草地、砖墙、钢墙、高血量墙和基地防守结构；草丛里的敌人会潜伏隐藏，并在关键动作时短暂显形。"
           }
         ],
         controlCards: [
@@ -90,7 +90,7 @@
         ],
         historyCards: {
           currentTitle: "当前正式版本",
-          currentDesc: "`{version}` 作为默认游玩入口，面向当前对外发布。",
+          currentDesc: "`{version}` 作为默认游玩入口，面向当前对外发布，并汇总了无敌反馈、草丛潜伏和基地砖成长这轮调整。",
           historyTitle: "历史版本",
           historyDesc: "`{version}` 作为可查找的历史版本保留，适合回看之前的手感与表现。",
           open: "打开 {version}"
@@ -104,17 +104,17 @@
         navVersions: "Versions",
         navRecords: "Full log",
         eyebrow: "Release entry",
-        lead: "A tank defense build refined around solo / co-op play, boss pressure, rotating maps and sharper controls. The current public entry points to <strong>{version}</strong>, and later builds will continue to ship through this release site.",
+        lead: "A tank defense build refined around solo / co-op play, boss pressure, rotating maps and sharper controls. The current public entry points to <strong>{version}</strong>, with this build focusing on invulnerability feedback, grass stealth readability, boss reward choice and stronger base-brick progression.",
         start: "Play now",
         updates: "See updates",
         versions: "Version history",
         openFile: "Open version file",
         shotTitle: "Main menu and rules entry",
-        shotDesc: "The homepage, play page, update page and full record page are now separated, which makes later releases easier to browse and maintain.",
+        shotDesc: "The homepage, play page, update page and full record page are now separated, and this build keeps the public-facing summary aligned with the latest balance changes.",
         overviewTitle: "Current version overview",
-        overviewDesc: "This section puts the default entry, gameplay scope and current content focus in one place, so visitors understand the build quickly.",
+        overviewDesc: "This section keeps the default entry, gameplay scope and current priorities in one place, so visitors can understand the build at a glance.",
         focusTitle: "Gameplay focus",
-        focusDesc: "This build is no longer just basic tank shooting. It has grown into a defense loop with progression, telegraphs and paced supplies.",
+        focusDesc: "This build is no longer just basic tank shooting. It has grown into a defense loop with progression, telegraphs, stealth pressure and paced supplies.",
         controlsTitle: "Controls and modes",
         controlsDesc: "Beyond the landing flow, the most important thing is getting a new player into a run immediately. The default controls stay visible here.",
         recentTitle: "Recent changes",
@@ -142,12 +142,12 @@
           {
             label: "Map rotation",
             title: "4 maps",
-            desc: "Stages rotate on a cycle so runs do not keep falling into the same terrain rhythm."
+            desc: "Stages rotate on a cycle, and the terrain mix keeps grass, walls and base-side pressure from feeling the same every run."
           },
           {
             label: "Boss design",
             title: "3 routes",
-            desc: "The current build clearly separates chase, bullet-pattern and disruption style bosses."
+            desc: "The current build clearly separates chase, bullet-pattern and disruption style bosses, and their rewards are now presented through a cleaner 4-choice pick."
           }
         ],
         focusCards: [
@@ -157,11 +157,11 @@
           },
           {
             title: "Progression",
-            desc: "Boss clears grant one of three rewards covering lives, ammo, crits, dash power, base defense and future reward economy."
+            desc: "Boss clears now offer a clearer multi-choice upgrade set covering lives, ammo, crits, dash power, base defense and future reward economy."
           },
           {
             title: "Map interaction",
-            desc: "Maps include grass, brick walls, steel walls, high-HP walls and base defenses, while grass also affects vision and combat information exposure."
+            desc: "Maps include grass, brick walls, steel walls, high-HP walls and base defenses, while enemies hiding in grass reveal themselves briefly during key actions."
           }
         ],
         controlCards: [
@@ -176,7 +176,7 @@
         ],
         historyCards: {
           currentTitle: "Current release",
-          currentDesc: "`{version}` is the default public play entry for the current outward-facing build.",
+          currentDesc: "`{version}` is the default public play entry and currently rolls up the latest invulnerability, grass-stealth and base-growth adjustments.",
           historyTitle: "Older build",
           historyDesc: "`{version}` remains available as a visible historical build for feel and balance comparison.",
           open: "Open {version}"
@@ -190,17 +190,17 @@
         navVersions: "旧バージョン",
         navRecords: "完全記録",
         eyebrow: "正式公開入口",
-        lead: "この防衛版は、1人 / 2人協力、Boss戦の圧力、マップ循環、操作感を中心に磨き続けています。現在の正式入口は <strong>{version}</strong> を指しており、今後の版もこの公開ページから継続して更新されます。",
+        lead: "この防衛版は、1人 / 2人協力、Boss戦の圧力、マップ循環、操作感を中心に磨き続けています。現在の正式入口は <strong>{version}</strong> を指しており、今回は無敵表示、草むら潜伏の見やすさ、Boss報酬選択、基地レンガ成長を重点的に整えています。",
         start: "今すぐ開始",
         updates: "更新を見る",
         versions: "履歴版",
         openFile: "版ファイルを開く",
         shotTitle: "メインメニューとルール入口",
-        shotDesc: "トップ、プレイページ、更新ページ、完全記録ページを分けているため、今後の公開や確認がしやすくなっています。",
+        shotDesc: "トップ、プレイページ、更新ページ、完全記録ページを分けているため、公開内容も今回の調整に合わせて追いやすくなっています。",
         overviewTitle: "現在版の概要",
-        overviewDesc: "入口、遊び方、現在の内容重点を一か所にまとめ、初見でも把握しやすくしています。",
+        overviewDesc: "入口、遊び方、今回の重点を一か所にまとめ、初見でも把握しやすくしています。",
         focusTitle: "ゲームの重点",
-        focusDesc: "この版は単なる戦車対戦ではなく、成長、予告、補給テンポを持つ防衛プレイへ広がっています。",
+        focusDesc: "この版は単なる戦車対戦ではなく、成長、予告、潜伏対抗、補給テンポを持つ防衛プレイへ広がっています。",
         controlsTitle: "操作とモード",
         controlsDesc: "公開導線以上に大切なのは、新しいプレイヤーがすぐ遊べることです。よく使う操作はここにまとめています。",
         recentTitle: "最近の変更",
@@ -228,12 +228,12 @@
           {
             label: "マップ循環",
             title: "4マップ",
-            desc: "マップは周期で切り替わり、毎回同じ地形リズムに偏らないようにしています。"
+            desc: "マップは周期で切り替わり、草むらや壁、基地周辺の圧力も毎回少しずつ変わります。"
           },
           {
             label: "Boss設計",
             title: "3系統",
-            desc: "追撃、弾幕、妨害系Bossの違いが現行版ではかなり明確になっています。"
+            desc: "追撃、弾幕、妨害系Bossの違いが現行版ではかなり明確で、報酬選択も4択で見やすくなっています。"
           }
         ],
         focusCards: [
@@ -243,11 +243,11 @@
           },
           {
             title: "成長要素",
-            desc: "Boss撃破後には三択報酬が入り、残機、弾薬、クリティカル、ダッシュ、基地防衛、次の報酬効率まで広くカバーします。"
+            desc: "Boss撃破後には見やすい多択報酬が入り、残機、弾薬、クリティカル、ダッシュ、基地防衛、次の報酬効率まで広くカバーします。"
           },
           {
             title: "地形との相互作用",
-            desc: "草地、レンガ壁、鋼壁、高耐久壁、基地防衛構造があり、草地は視界や戦闘情報の露出にも影響します。"
+            desc: "草地、レンガ壁、鋼壁、高耐久壁、基地防衛構造があり、草むらの敵は重要な行動時だけ短く姿を見せます。"
           }
         ],
         controlCards: [
@@ -262,7 +262,7 @@
         ],
         historyCards: {
           currentTitle: "現在の正式版",
-          currentDesc: "`{version}` は現在の対外公開向けプレイ入口です。",
+          currentDesc: "`{version}` は現在の対外公開向けプレイ入口で、今回の無敵表示や草むら潜伏、基地レンガ成長調整をまとめています。",
           historyTitle: "旧バージョン",
           historyDesc: "`{version}` は比較や振り返り用の履歴版として残しています。",
           open: "{version} を開く"
@@ -276,17 +276,17 @@
         navVersions: "이전 버전",
         navRecords: "전체 기록",
         eyebrow: "정식 배포 입구",
-        lead: "이 방어형 탱크 빌드는 싱글 / 2인 협력, Boss 압박, 맵 순환, 조작 반응을 중심으로 계속 다듬어졌습니다. 현재 정식 입구는 <strong>{version}</strong> 을 가리키며, 이후 버전도 이 공개 페이지를 통해 계속 이어집니다.",
+        lead: "이 방어형 탱크 빌드는 싱글 / 2인 협력, Boss 압박, 맵 순환, 조작 반응을 중심으로 계속 다듬어졌습니다. 현재 정식 입구는 <strong>{version}</strong> 을 가리키며, 이번에는 무적 표시, 풀숲 잠복 가독성, Boss 보상 선택, 기지 벽돌 성장 쪽을 특히 손봤습니다.",
         start: "바로 시작",
         updates: "업데이트 보기",
         versions: "버전 기록",
         openFile: "버전 파일 열기",
         shotTitle: "메인 메뉴와 규칙 입구",
-        shotDesc: "메인 페이지, 플레이 페이지, 업데이트 페이지, 전체 기록 페이지를 나눠 두어서 이후 공개와 확인이 더 편해졌습니다.",
+        shotDesc: "메인 페이지, 플레이 페이지, 업데이트 페이지, 전체 기록 페이지를 나눠 두어서 이번 조정 내용도 공개 쪽에서 더 쉽게 따라갈 수 있습니다.",
         overviewTitle: "현재 버전 개요",
-        overviewDesc: "진입점, 플레이 범위, 현재 콘텐츠 핵심을 한곳에 모아 처음 보는 사람도 바로 이해할 수 있게 정리했습니다.",
+        overviewDesc: "진입점, 플레이 범위, 이번 핵심 조정을 한곳에 모아 처음 보는 사람도 바로 이해할 수 있게 정리했습니다.",
         focusTitle: "플레이 핵심",
-        focusDesc: "이 버전은 단순한 탱크 사격을 넘어 성장, 예고, 보급 템포가 들어간 방어형 플레이로 확장되었습니다.",
+        focusDesc: "이 버전은 단순한 탱크 사격을 넘어 성장, 예고, 잠복 압박, 보급 템포가 들어간 방어형 플레이로 확장되었습니다.",
         controlsTitle: "조작과 모드",
         controlsDesc: "랜딩보다 더 중요한 건 새 플레이어가 바로 플레이할 수 있는 점입니다. 자주 쓰는 기본 조작을 여기서 바로 확인할 수 있습니다.",
         recentTitle: "최근 변경점",
@@ -314,12 +314,12 @@
           {
             label: "맵 순환",
             title: "맵 4종",
-            desc: "맵은 주기에 따라 교체되어 매번 같은 지형 리듬으로만 흐르지 않게 했습니다."
+            desc: "맵은 주기에 따라 교체되며, 풀숲과 벽, 기지 주변 압박도 함께 달라져 반복감이 줄어듭니다."
           },
           {
             label: "Boss 설계",
             title: "3가지 계열",
-            desc: "추격형, 탄막형, 방해형 Boss의 성격 구분이 현재 버전에서 꽤 분명해졌습니다."
+            desc: "추격형, 탄막형, 방해형 Boss의 성격 구분이 현재 버전에서 더 분명해졌고, 보상 선택도 4지선다로 더 직관적입니다."
           }
         ],
         focusCards: [
@@ -329,11 +329,11 @@
           },
           {
             title: "성장 시스템",
-            desc: "Boss 클리어 후에는 3지선다 보상이 주어지며, 목숨, 탄약, 치명타, 돌진, 기지 방어, 이후 보상 효율까지 폭넓게 다룹니다."
+            desc: "Boss 클리어 후에는 보기 쉬운 다중 선택 보상이 주어지며, 목숨, 탄약, 치명타, 돌진, 기지 방어, 이후 보상 효율까지 폭넓게 다룹니다."
           },
           {
             title: "지형 상호작용",
-            desc: "풀숲, 벽돌벽, 강철벽, 고내구 벽, 기지 방어 구조가 있으며, 풀숲은 시야와 전투 정보 노출에도 영향을 줍니다."
+            desc: "풀숲, 벽돌벽, 강철벽, 고내구 벽, 기지 방어 구조가 있으며, 풀숲의 적은 중요한 행동을 할 때만 잠깐 모습을 드러냅니다."
           }
         ],
         controlCards: [
@@ -348,7 +348,7 @@
         ],
         historyCards: {
           currentTitle: "현재 정식 버전",
-          currentDesc: "`{version}` 은 현재 대외 공개용 기본 플레이 입구입니다.",
+          currentDesc: "`{version}` 은 현재 대외 공개용 기본 플레이 입구로, 이번 무적 표시와 풀숲 잠복, 기지 벽돌 성장 조정을 함께 담고 있습니다.",
           historyTitle: "이전 버전",
           historyDesc: "`{version}` 은 비교와 회고용으로 남겨 둔 기록 버전입니다.",
           open: "{version} 열기"
