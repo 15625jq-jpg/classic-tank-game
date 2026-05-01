@@ -209,8 +209,8 @@
         ammoCapUp: "全体弹药上限 +10",
         bulletUp: "全体子弹速度 +1",
         doubleDamage: "全体 +10% 概率造成 2 点伤害",
-        reloadFaster: "全体填弹时间 -0.5s",
-        dashFaster: "全体冲刺冷却 -1s",
+        reloadFaster: "全体填弹时间 -0.4s",
+        dashFaster: "全体冲刺冷却 -0.6s",
         extraBossReward: "下次Boss奖励改为4选1",
         lifeTransfer: "高血量玩家 -1 命，另一人 +2~4 命"
       },
@@ -433,8 +433,8 @@
         ammoCapUp: "+10 max ammo for everyone",
         bulletUp: "+1 bullet speed for everyone",
         doubleDamage: "+10% chance to deal 2 damage",
-        reloadFaster: "-0.5s reload time for everyone",
-        dashFaster: "-1s dash cooldown for everyone",
+        reloadFaster: "-0.4s reload time for everyone",
+        dashFaster: "-0.6s dash cooldown for everyone",
         extraBossReward: "Next boss reward becomes 4 choices",
         lifeTransfer: "Highest HP player -1 life, the other gains +2~4"
       },
@@ -657,8 +657,8 @@
         ammoCapUp: "全員の弾数上限 +10",
         bulletUp: "全員の弾速 +1",
         doubleDamage: "全員 +10% で 2 ダメージ",
-        reloadFaster: "全員の装填時間 -0.5秒",
-        dashFaster: "全員のダッシュCD -1秒",
+        reloadFaster: "全員の装填時間 -0.4秒",
+        dashFaster: "全員のダッシュCD -0.6秒",
         extraBossReward: "次のBoss報酬が4択になる",
         lifeTransfer: "高HP側 -1 残機、もう一方 +2~4"
       },
@@ -881,8 +881,8 @@
         ammoCapUp: "전원 최대 탄약 +10",
         bulletUp: "전원 탄속 +1",
         doubleDamage: "전원 10% 확률로 2 피해",
-        reloadFaster: "전원 재장전 시간 -0.5초",
-        dashFaster: "전원 대시 쿨다운 -1초",
+        reloadFaster: "전원 재장전 시간 -0.4초",
+        dashFaster: "전원 대시 쿨다운 -0.6초",
         extraBossReward: "다음 Boss 보상이 4지선다로 변경",
         lifeTransfer: "체력 높은 플레이어 -1, 다른 쪽 +2~4"
       },
@@ -2365,6 +2365,7 @@
       this.playerDashCooldown = opts.playerDashCooldown ?? 0;
       this.playerDashFrames = 0;
       this.invulnFrames = 0;
+      this.grassRevealTimer = 0;
 
       this.bossSkillCd = 0;
       this.bossCastType = "";
@@ -2434,7 +2435,12 @@
       floatTexts.push(new FloatText(this.x - 4, this.y - 8, t("effects.dash"), COLORS.shield, 24));
     }
 
+    revealFromGrass(frames = 24) {
+      if (!this.isPlayer) this.grassRevealTimer = Math.max(this.grassRevealTimer, frames);
+    }
+
     startBossCast(type, frames, target = null) {
+      this.revealFromGrass(type === "dash" ? 24 : 18);
       this.bossCastType = type;
       this.bossCastTimer = frames;
       if (type === "dash" && target) {
@@ -2542,6 +2548,7 @@
       }
 
       this.cooldown = this.cooldownMax;
+      this.revealFromGrass(22);
 
       if (this.isPlayer) {
         this.ammo--;
@@ -2597,6 +2604,7 @@
 
     takeHit(dmg = 1) {
       if (this.spawnShield > 0 || this.invulnFrames > 0) return false;
+      this.revealFromGrass(24);
       this.hp -= dmg;
 
       if (!this.isPlayer && this.enemyType.startsWith("boss") && !this.phase2 && this.hp <= this.maxHp * 0.5) {
@@ -2707,6 +2715,7 @@
       if (this.spawnShield > 0) this.spawnShield--;
       if (this.playerDashCooldown > 0) this.playerDashCooldown--;
       if (this.invulnFrames > 0) this.invulnFrames--;
+      if (this.grassRevealTimer > 0) this.grassRevealTimer--;
       if (this.dashHitCooldown > 0) this.dashHitCooldown--;
       this.updateReload();
 
@@ -2806,8 +2815,8 @@
 
     draw() {
       if (!this.alive) return;
-      const grassPulseVisible = !this.isPlayer && rectTouchesTile(this.getRect(), GRASS) && (state.frame % 30) < 6;
-      const concealedInGrass = !this.isPlayer && rectTouchesTile(this.getRect(), GRASS) && !grassPulseVisible;
+      const grassActionVisible = !this.isPlayer && this.grassRevealTimer > 0;
+      const concealedInGrass = !this.isPlayer && rectTouchesTile(this.getRect(), GRASS) && !grassActionVisible;
       if (concealedInGrass) return;
 
       if (this.isPlayer && this.playerDashFrames > 0) {
@@ -2837,7 +2846,7 @@
 
       ctx.restore();
 
-      if ((!concealedInGrass || grassPulseVisible) && this.enemyType.startsWith("boss") && this.bossCastTimer > 0) {
+      if ((!concealedInGrass || grassActionVisible) && this.enemyType.startsWith("boss") && this.bossCastTimer > 0) {
         const cx = this.x + this.w / 2;
         const cy = this.y + this.h / 2;
         const pulse = 0.7 + (Math.sin(state.frame * 0.35) + 1) * 0.15;
@@ -3324,7 +3333,7 @@
         text: t("reward.reloadFaster"),
         apply() {
           for (const p of players) {
-            p.reloadDuration = Math.max(MIN_RELOAD_TIME, p.reloadDuration - 500);
+            p.reloadDuration = Math.max(MIN_RELOAD_TIME, p.reloadDuration - 400);
             if (p.isReloading) p.reloadTimer = Math.min(p.reloadTimer, p.reloadDuration);
           }
         }
@@ -3334,7 +3343,7 @@
         text: t("reward.dashFaster"),
         apply() {
           for (const p of players) {
-            p.playerDashCooldownMax = Math.max(MIN_PLAYER_DASH_COOLDOWN, p.playerDashCooldownMax - 60);
+            p.playerDashCooldownMax = Math.max(MIN_PLAYER_DASH_COOLDOWN, p.playerDashCooldownMax - 36);
             p.playerDashCooldown = Math.min(p.playerDashCooldown, p.playerDashCooldownMax);
           }
         }
