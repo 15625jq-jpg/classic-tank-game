@@ -1301,6 +1301,9 @@
     return a.x < b.x + b.w && a.x + a.w > b.x &&
            a.y < b.y + b.h && a.y + a.h > b.y;
   }
+  function makeBucketKey(x, y) {
+    return `${x},${y}`;
+  }
 
   const state = {
     frame: 0,
@@ -1503,6 +1506,7 @@
   const floatTexts = [];
   const hitEffects = [];
   const baseShieldBackup = [];
+  const BULLET_CLASH_BUCKET = 32;
 
   const eagle = {
     row: ROWS - 2,
@@ -2300,28 +2304,6 @@
         }
       }
 
-      for (const b of bullets) {
-        if (b !== this && b.alive && b.owner.isPlayer !== this.owner.isPlayer && rectsOverlap(this.rect(), b.rect())) {
-          const thisGuard = this.clashGuard > 0;
-          const otherGuard = b.clashGuard > 0;
-          if (thisGuard && !otherGuard) {
-            this.clashGuard--;
-            b.alive = false;
-            hitEffects.push(new HitEffect(this.x, this.y, COLORS.crit, 10, 12));
-            return;
-          }
-          if (!thisGuard && otherGuard) {
-            b.clashGuard--;
-            this.alive = false;
-            hitEffects.push(new HitEffect(this.x, this.y, COLORS.enemyBullet, 8, 10));
-            return;
-          }
-          this.alive = false;
-          b.alive = false;
-          hitEffects.push(new HitEffect(this.x, this.y, "#fff"));
-          return;
-        }
-      }
     }
     draw() {
       if (!this.alive) return;
@@ -2330,6 +2312,74 @@
         : COLORS.enemyBullet;
       ctx.fillRect(this.x, this.y, this.size, this.size);
     }
+  }
+
+  function getBulletBucketCoord(bullet) {
+    return {
+      x: Math.floor((bullet.x + bullet.size * 0.5) / BULLET_CLASH_BUCKET),
+      y: Math.floor((bullet.y + bullet.size * 0.5) / BULLET_CLASH_BUCKET)
+    };
+  }
+
+  function resolveBulletClashPair(a, b) {
+    const aGuard = a.clashGuard > 0;
+    const bGuard = b.clashGuard > 0;
+    if (aGuard && !bGuard) {
+      a.clashGuard--;
+      b.alive = false;
+      hitEffects.push(new HitEffect(a.x, a.y, COLORS.crit, 10, 12));
+      return;
+    }
+    if (!aGuard && bGuard) {
+      b.clashGuard--;
+      a.alive = false;
+      hitEffects.push(new HitEffect(a.x, a.y, COLORS.enemyBullet, 8, 10));
+      return;
+    }
+    a.alive = false;
+    b.alive = false;
+    hitEffects.push(new HitEffect((a.x + b.x) * 0.5, (a.y + b.y) * 0.5, "#fff"));
+  }
+
+  function resolveBulletClashes() {
+    if (bullets.length < 2) return;
+
+    const buckets = new Map();
+    for (const bullet of bullets) {
+      if (!bullet.alive) continue;
+      bullet.clashResolvedThisFrame = false;
+      const cell = getBulletBucketCoord(bullet);
+      const key = makeBucketKey(cell.x, cell.y);
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key).push(bullet);
+    }
+
+    for (const bullet of bullets) {
+      if (!bullet.alive || bullet.clashResolvedThisFrame) continue;
+
+      const cell = getBulletBucketCoord(bullet);
+      for (let oy = -1; oy <= 1; oy++) {
+        for (let ox = -1; ox <= 1; ox++) {
+          const nearby = buckets.get(makeBucketKey(cell.x + ox, cell.y + oy));
+          if (!nearby) continue;
+
+          for (const other of nearby) {
+            if (other === bullet || !other.alive || other.clashResolvedThisFrame) continue;
+            if (other.owner.isPlayer === bullet.owner.isPlayer) continue;
+            if (!rectsOverlap(bullet.rect(), other.rect())) continue;
+
+            bullet.clashResolvedThisFrame = true;
+            other.clashResolvedThisFrame = true;
+            resolveBulletClashPair(bullet, other);
+            break;
+          }
+          if (!bullet.alive || bullet.clashResolvedThisFrame) break;
+        }
+        if (!bullet.alive || bullet.clashResolvedThisFrame) break;
+      }
+    }
+
+    for (const bullet of bullets) bullet.clashResolvedThisFrame = false;
   }
 
   class Tank {
@@ -3555,6 +3605,7 @@
     for (const p of players) p.update();
     for (const e of enemies) e.update();
     for (const b of bullets) b.update();
+    resolveBulletClashes();
     for (const pw of powerups) pw.update();
     for (const sp of spawnEffects) sp.update();
     for (const hf of hitEffects) hf.update();
