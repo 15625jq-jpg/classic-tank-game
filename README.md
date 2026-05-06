@@ -14,13 +14,11 @@
 
 ## 当前版本文件
 
+- ``经典坦克大战平衡版v4.1.html``
 - ``经典坦克大战平衡版v4.0.html``
 - ``经典坦克大战平衡版v3.9.html``
 - ``经典坦克大战平衡版v3.8.html``
 - ``经典坦克大战平衡版v3.7.html``
-
-## 游玩网址
-- ``https://15625jq-jpg.github.io/classic-tank-game``
 
 ## 目录树
 
@@ -34,15 +32,16 @@ updates/
 versions/
   index.html
 .nojekyll
-发布与更新说明.md
 更新发布.ps1
 经典坦克大战平衡版版本调整说明.md
 经典坦克大战平衡版v3.7.html
 经典坦克大战平衡版v3.8.html
 经典坦克大战平衡版v3.9.html
 经典坦克大战平衡版v4.0.html
+经典坦克大战平衡版v4.1.html
 index.html
 playtest-v3.9-menu.png
 README.md
 site-language.js
+verify-v3.4.js
 ```
