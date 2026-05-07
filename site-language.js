@@ -16,12 +16,14 @@
         navPlay: "开始游戏",
         navUpdates: "版本更新",
         navVersions: "历史版本",
+        navIcons: "图标总览",
         navRecords: "完整记录",
         eyebrow: "正式发布入口",
-        lead: "围绕单人 / 双人协作、Boss 关压力、地图轮换与操作反馈持续打磨的坦克防守版本。当前正式入口指向 <strong>{version}</strong>，这一版在保留精英敌人、倒地救援、地图机关和 Boss 遗物成长线的基础上，又把炸弹体验和 Boss 奖励流程一起收顺了。",
+        lead: "围绕单人 / 双人协作、Boss 关压力、地图轮换与操作反馈持续打磨的坦克防守版本。当前正式入口指向 <strong>{version}</strong>，这一版重点把炸弹与油桶的真实规则重新校准，道具图标整体改成更易辨认的无边框风格，并把图标总览页正式接进了发布站。",
         start: "立即开始",
         updates: "查看更新",
         versions: "历史版本",
+        icons: "图标总览",
         openFile: "直接打开版本文件",
         shotTitle: "主菜单与规则入口",
         shotDesc: "主菜单、游玩入口、更新摘要和完整记录已经拆分整理，这一版也把对外展示内容同步到了最新平衡状态。",
@@ -90,7 +92,7 @@
         ],
         historyCards: {
           currentTitle: "当前正式版本",
-          currentDesc: "`{version}` 作为默认游玩入口，面向当前对外发布，并整合了精英敌人、倒地救援、地图机关、炸弹补强和 Boss 奖励流程这轮调整。",
+          currentDesc: "`{version}` 作为默认游玩入口，面向当前对外发布，并整合了炸弹与油桶规则回调、无边框道具图标重绘和图标总览页入口。",
           historyTitle: "历史版本",
           historyDesc: "`{version}` 作为可查找的历史版本保留，适合回看之前的手感与表现。",
           open: "打开 {version}"
@@ -102,12 +104,14 @@
         navPlay: "Play",
         navUpdates: "Updates",
         navVersions: "Versions",
+        navIcons: "Icon guide",
         navRecords: "Full log",
         eyebrow: "Release entry",
-        lead: "A tank defense build refined around solo / co-op play, boss pressure, rotating maps and sharper controls. The current public entry points to <strong>{version}</strong>, and this build keeps elite enemies, revive support, map hazards and boss relic progression while also tightening bomb handling and boss reward flow.",
+        lead: "A tank defense build refined around solo / co-op play, boss pressure, rotating maps and sharper controls. The current public entry points to <strong>{version}</strong>, and this build realigns the real bomb and oil-barrel rules, redraws the item icons into a cleaner borderless set, and adds a dedicated icon guide page to the release site.",
         start: "Play now",
         updates: "See updates",
         versions: "Version history",
+        icons: "Icon guide",
         openFile: "Open version file",
         shotTitle: "Main menu and rules entry",
         shotDesc: "The homepage, play page, update page and full record page are now separated, and this build keeps the public-facing summary aligned with the latest balance changes.",
@@ -176,7 +180,7 @@
         ],
         historyCards: {
           currentTitle: "Current release",
-          currentDesc: "`{version}` is the default public play entry and currently rolls up elite enemies, revive support, map hazards, the bomb rework and the revised boss reward flow.",
+          currentDesc: "`{version}` is the default public play entry and currently rolls up the corrected bomb and oil rules, the borderless item icon pass and the new icon guide page.",
           historyTitle: "Older build",
           historyDesc: "`{version}` remains available as a visible historical build for feel and balance comparison.",
           open: "Open {version}"
@@ -188,12 +192,14 @@
         navPlay: "ゲーム開始",
         navUpdates: "更新履歴",
         navVersions: "旧バージョン",
+        navIcons: "アイコン一覧",
         navRecords: "完全記録",
         eyebrow: "正式公開入口",
-        lead: "この防衛版は、1人 / 2人協力、Boss戦の圧力、マップ循環、操作感を中心に磨き続けています。現在の正式入口は <strong>{version}</strong> を指しており、今回は精鋭敵、救援復帰、地形ギミック、Boss遺物成長に加えて、爆弾体験と Boss 報酬導線も整えています。",
+        lead: "この防衛版は、1人 / 2人協力、Boss戦の圧力、マップ循環、操作感を中心に磨き続けています。現在の正式入口は <strong>{version}</strong> を指しており、今回は爆弾とオイル樽の実際の挙動を整理し、道具アイコンを枠なしで見分けやすく描き直し、アイコン一覧ページも正式公開に組み込みました。",
         start: "今すぐ開始",
         updates: "更新を見る",
         versions: "履歴版",
+        icons: "アイコン一覧",
         openFile: "版ファイルを開く",
         shotTitle: "メインメニューとルール入口",
         shotDesc: "トップ、プレイページ、更新ページ、完全記録ページを分けているため、公開内容も今回の調整に合わせて追いやすくなっています。",
@@ -262,7 +268,7 @@
         ],
         historyCards: {
           currentTitle: "現在の正式版",
-          currentDesc: "`{version}` は現在の対外公開向けプレイ入口で、精鋭敵、救援復帰、地形ギミックに加え、爆弾改修と Boss 報酬導線の整理までまとめています。",
+          currentDesc: "`{version}` は現在の対外公開向けプレイ入口で、爆弾とオイル樽の実際のルール修正、枠なし道具アイコン、アイコン一覧ページまで反映した正式公開版です。",
           historyTitle: "旧バージョン",
           historyDesc: "`{version}` は比較や振り返り用の履歴版として残しています。",
           open: "{version} を開く"
@@ -274,12 +280,14 @@
         navPlay: "게임 시작",
         navUpdates: "업데이트",
         navVersions: "이전 버전",
+        navIcons: "아이콘 안내",
         navRecords: "전체 기록",
         eyebrow: "정식 배포 입구",
-        lead: "이 방어형 탱크 빌드는 싱글 / 2인 협력, Boss 압박, 맵 순환, 조작 반응을 중심으로 계속 다듬어졌습니다. 현재 정식 입구는 <strong>{version}</strong> 을 가리키며, 이번에는 정예 적, 구조 부활, 맵 기믹, Boss 유물 성장선에 더해 폭탄 체감과 Boss 보상 흐름도 함께 다듬었습니다.",
+        lead: "이 방어형 탱크 빌드는 싱글 / 2인 협력, Boss 압박, 맵 순환, 조작 반응을 중심으로 계속 다듬어졌습니다. 현재 정식 입구는 <strong>{version}</strong> 을 가리키며, 이번에는 폭탄과 기름통의 실제 규칙을 다시 맞추고, 아이템 아이콘을 테두리 없는 형태로 다시 그렸으며, 아이콘 안내 페이지도 정식 사이트에 붙였습니다.",
         start: "바로 시작",
         updates: "업데이트 보기",
         versions: "버전 기록",
+        icons: "아이콘 안내",
         openFile: "버전 파일 열기",
         shotTitle: "메인 메뉴와 규칙 입구",
         shotDesc: "메인 페이지, 플레이 페이지, 업데이트 페이지, 전체 기록 페이지를 나눠 두어서 이번 조정 내용도 공개 쪽에서 더 쉽게 따라갈 수 있습니다.",
@@ -348,7 +356,7 @@
         ],
         historyCards: {
           currentTitle: "현재 정식 버전",
-          currentDesc: "`{version}` 은 현재 대외 공개용 기본 플레이 입구로, 정예 적, 구조 부활, 맵 기믹, 폭탄 개편, Boss 보상 흐름 조정을 함께 담고 있습니다.",
+          currentDesc: "`{version}` 은 현재 대외 공개용 기본 플레이 입구로, 폭탄과 기름통의 실제 규칙 보정, 테두리 없는 아이템 아이콘, 아이콘 안내 페이지까지 반영한 정식 공개 버전입니다.",
           historyTitle: "이전 버전",
           historyDesc: "`{version}` 은 비교와 회고용으로 남겨 둔 기록 버전입니다.",
           open: "{version} 열기"
@@ -455,6 +463,76 @@
         currentMeta: "현재 정식 버전",
         historyMeta: "이전 버전",
         open: "{version} 열기"
+      }
+    },
+    icons: {
+      "zh-CN": {
+        pageTitle: "图标总览 · 经典坦克大战平衡版",
+        subtitle: "图标总览页",
+        navHome: "首页",
+        navPlay: "开始游戏",
+        navUpdates: "版本更新",
+        navVersions: "历史版本",
+        eyebrow: "图标总览",
+        heroTitle: "图标总览",
+        heroDesc: "把当前版本里的主要道具、机关和状态标记集中放在一页，方便快速对照和辨认。",
+        powerupTitle: "道具图标",
+        powerupDesc: "本轮统一改成无方形边框的纯图形主体，拾取时更容易一眼认出来。",
+        terrainTitle: "地图机关与关键地块",
+        terrainDesc: "把容易混淆的油桶、泥地、高血墙和基地核心单独列出来，避免再和掉落物看混。",
+        statusTitle: "状态与场上标记",
+        statusDesc: "这些是战斗里最常出现的持续状态提示，主要负责传达无敌、倒地和精英信息。"
+      },
+      "en": {
+        pageTitle: "Icon guide · Classic Tank Battle: Balance Edition",
+        subtitle: "Icon guide page",
+        navHome: "Home",
+        navPlay: "Play",
+        navUpdates: "Updates",
+        navVersions: "Versions",
+        eyebrow: "Icon guide",
+        heroTitle: "Icon guide",
+        heroDesc: "This page gathers the main pickups, hazards and state markers from the current build so they are easier to recognize at a glance.",
+        powerupTitle: "Powerups",
+        powerupDesc: "The pickup icons now use borderless silhouettes, making them easier to read during combat.",
+        terrainTitle: "Hazards and key tiles",
+        terrainDesc: "Oil barrels, mud, hard walls and the base core are split out here so they are not confused with drops.",
+        statusTitle: "Status markers",
+        statusDesc: "These are the on-field markers most often used to show invulnerability, downed states and elite enemies."
+      },
+      "ja": {
+        pageTitle: "アイコン一覧 · クラシックタンク大戦 バランス版",
+        subtitle: "アイコン一覧ページ",
+        navHome: "ホーム",
+        navPlay: "ゲーム開始",
+        navUpdates: "更新履歴",
+        navVersions: "旧バージョン",
+        eyebrow: "アイコン一覧",
+        heroTitle: "アイコン一覧",
+        heroDesc: "現行版の主要な道具、地形ギミック、状態表示を 1 ページにまとめ、見分けやすくしています。",
+        powerupTitle: "道具アイコン",
+        powerupDesc: "今回、道具は四角い枠を外し、図形そのものが目立つ描き方に揃えました。",
+        terrainTitle: "地形ギミックと重要地块",
+        terrainDesc: "オイル樽、泥地、高耐久壁、基地コアを個別に並べ、拾得物と見間違えにくくしています。",
+        statusTitle: "状態表示",
+        statusDesc: "無敵、倒地、精鋭敵など、戦闘中に特によく使う表示をまとめています。"
+      },
+      "ko": {
+        pageTitle: "아이콘 안내 · 클래식 탱크 대전 밸런스판",
+        subtitle: "아이콘 안내 페이지",
+        navHome: "홈",
+        navPlay: "게임 시작",
+        navUpdates: "업데이트",
+        navVersions: "이전 버전",
+        eyebrow: "아이콘 안내",
+        heroTitle: "아이콘 안내",
+        heroDesc: "현재 버전의 주요 아이템, 맵 기믹, 상태 표시를 한곳에 모아 전투 중 더 빨리 구분할 수 있게 정리했습니다.",
+        powerupTitle: "아이템 아이콘",
+        powerupDesc: "이번 라운드에서 아이템은 사각 프레임을 빼고, 본체 실루엣이 더 잘 보이도록 정리했습니다.",
+        terrainTitle: "맵 기믹과 핵심 지형",
+        terrainDesc: "기름통, 진흙, 고내구 벽, 기지 코어를 따로 모아 드롭 아이템과 헷갈리지 않게 했습니다.",
+        statusTitle: "상태 표시",
+        statusDesc: "무적, 다운, 정예 적처럼 전투 중 자주 보는 핵심 표시를 모아 두었습니다."
       }
     },
     records: {
@@ -590,6 +668,7 @@
     setText("navPlay", strings.navPlay);
     setText("navUpdates", strings.navUpdates);
     setText("navVersions", strings.navVersions);
+    setText("navIcons", strings.navIcons);
     setText("navRecords", strings.navRecords);
     setText("homeEyebrow", strings.eyebrow);
     setText("homeTitle", strings.title);
@@ -600,6 +679,7 @@
     setText("homeStartButton", strings.start);
     setText("homeUpdatesButton", strings.updates);
     setText("homeVersionsButton", strings.versions);
+    setText("homeIconsButton", strings.icons);
     setText("homeFileButton", strings.openFile);
     setText("homeShotTitle", strings.shotTitle);
     setText("homeShotDesc", strings.shotDesc);
@@ -732,6 +812,23 @@
     document.title = strings.pageTitle;
   }
 
+  function applyIcons(strings) {
+    setText("iconNavHome", strings.navHome);
+    setText("iconNavPlay", strings.navPlay);
+    setText("iconNavUpdates", strings.navUpdates);
+    setText("iconNavVersions", strings.navVersions);
+    setText("iconEyebrow", strings.eyebrow);
+    setText("iconHeroTitle", strings.heroTitle);
+    setText("iconHeroDesc", strings.heroDesc);
+    setText("iconPowerupTitle", strings.powerupTitle);
+    setText("iconPowerupDesc", strings.powerupDesc);
+    setText("iconTerrainTitle", strings.terrainTitle);
+    setText("iconTerrainDesc", strings.terrainDesc);
+    setText("iconStatusTitle", strings.statusTitle);
+    setText("iconStatusDesc", strings.statusDesc);
+    document.title = strings.pageTitle;
+  }
+
   function apply() {
     const lang = getLanguage();
     document.documentElement.lang = lang;
@@ -748,6 +845,7 @@
     if (PAGE === "play") applyPlay(strings);
     if (PAGE === "updates") applyUpdates(strings);
     if (PAGE === "versions") applyVersions(strings);
+    if (PAGE === "icons") applyIcons(strings);
     if (PAGE === "records") applyRecords(strings);
   }
 

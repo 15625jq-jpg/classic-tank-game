@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>图标总览 · 经典坦克大战平衡版</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #090a0c;
+    --panel: rgba(18, 21, 27, 0.94);
+    --line: rgba(255,255,255,0.12);
+    --text: #f2f4f8;
+    --muted: #aab4c4;
+    --gold: #f0c24d;
+    --blue: #5ca6ff;
+    --cyan: #87e2ff;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, "Microsoft YaHei", sans-serif;
+  }
+  body { padding: 28px 16px 56px; }
+  .page { width: min(1180px, 100%); margin: 0 auto; }
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .topbar nav,
+  .topbar-tools {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .topbar a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .lang-switch {
+    display: flex;
+    gap: 8px;
+  }
+  .lang-switch button {
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .lang-switch button.active {
+    color: #17120a;
+    background: var(--gold);
+    border-color: rgba(240,194,77,0.36);
+  }
+  .hero,
+  section {
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+  }
+  .hero {
+    padding: 28px 30px;
+    margin-bottom: 22px;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--muted);
+    font-size: 13px;
+  }
+  h1 {
+    margin: 18px 0 12px;
+    font-size: clamp(32px, 4vw, 48px);
+    line-height: 1.08;
+  }
+  .hero p {
+    margin: 0;
+    max-width: 62ch;
+    color: #d6dce8;
+    line-height: 1.8;
+  }
+  section {
+    margin-top: 22px;
+    padding: 24px;
+  }
+  section h2 {
+    margin: 0 0 10px;
+    font-size: 24px;
+  }
+  section > p {
+    margin: 0 0 18px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    min-height: 184px;
+    padding: 18px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.02);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 10px;
+  }
+  .card strong { font-size: 18px; }
+  .card span {
+    color: var(--muted);
+    line-height: 1.6;
+    font-size: 14px;
+  }
+  .icon {
+    width: 72px;
+    height: 72px;
+    position: relative;
+    flex: 0 0 auto;
+  }
+  .shield::before,
+  .shield::after,
+  .bomb::before,
+  .bomb::after,
+  .freeze::before,
+  .freeze::after,
+  .star::before,
+  .star::after,
+  .life::before,
+  .ammo::before,
+  .ammo::after,
+  .oil::before,
+  .oil::after,
+  .mud::before,
+  .hardwall::before,
+  .base::before,
+  .ring::before,
+  .ring::after,
+  .revive::before,
+  .revive::after,
+  .elite::before,
+  .elite::after {
+    content: "";
+    position: absolute;
+  }
+  .shield::before {
+    left: 17px;
+    top: 10px;
+    width: 38px;
+    height: 48px;
+    background: linear-gradient(180deg, #84d5ff, #2d7cff);
+    clip-path: polygon(50% 0%, 92% 18%, 92% 58%, 50% 100%, 8% 58%, 8% 18%);
+  }
+  .shield::after {
+    left: 31px;
+    top: 20px;
+    width: 10px;
+    height: 24px;
+    background: rgba(255,255,255,0.38);
+    border-radius: 99px;
+  }
+  .bomb::before {
+    left: 16px;
+    top: 16px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ffcf86 0 20%, #d45b2d 30%, #7b2815 72%);
+  }
+  .bomb::after {
+    left: 46px;
+    top: 10px;
+    width: 14px;
+    height: 14px;
+    background: radial-gradient(circle, #ffe27c 0 28%, #ff8144 30% 66%, transparent 68%);
+    clip-path: polygon(50% 0%, 64% 36%, 100% 50%, 64% 64%, 50% 100%, 36% 64%, 0% 50%, 36% 36%);
+  }
+  .bomb .fuse {
+    position: absolute;
+    left: 43px;
+    top: 12px;
+    width: 12px;
+    height: 12px;
+    border-top: 3px solid #f1d18f;
+    border-right: 3px solid #f1d18f;
+    border-radius: 0 14px 0 0;
+    transform: rotate(-14deg);
+  }
+  .freeze::before {
+    left: 16px;
+    top: 16px;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(180deg, rgba(187,245,255,0.95), rgba(102,189,255,0.88));
+    clip-path: polygon(50% 4%, 92% 26%, 92% 74%, 50% 96%, 8% 74%, 8% 26%);
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.24);
+  }
+  .freeze::after {
+    left: 29px;
+    top: 24px;
+    width: 14px;
+    height: 22px;
+    border-left: 3px solid rgba(255,255,255,0.55);
+    border-right: 3px solid rgba(255,255,255,0.28);
+    transform: skewX(-14deg);
+  }
+  .star::before {
+    left: 14px;
+    top: 12px;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(180deg, #ffe27c, #f0b925);
+    clip-path: polygon(50% 0%, 61% 34%, 98% 36%, 68% 57%, 79% 92%, 50% 71%, 21% 92%, 32% 57%, 2% 36%, 39% 34%);
+  }
+  .star::after {
+    left: 29px;
+    top: 18px;
+    width: 10px;
+    height: 10px;
+    background: rgba(255,255,255,0.58);
+    clip-path: polygon(50% 0%, 61% 34%, 98% 36%, 68% 57%, 79% 92%, 50% 71%, 21% 92%, 32% 57%, 2% 36%, 39% 34%);
+  }
+  .life::before {
+    left: 19px;
+    top: 19px;
+    width: 34px;
+    height: 34px;
+    background: linear-gradient(180deg, #ffb8ce, #ff658f);
+    transform: rotate(45deg);
+    border-radius: 8px 8px 4px 4px;
+  }
+  .life::after {
+    left: 19px;
+    top: 12px;
+    width: 34px;
+    height: 22px;
+    background:
+      radial-gradient(circle at 10px 11px, #ffb8ce 0 10px, transparent 11px),
+      radial-gradient(circle at 24px 11px, #ffb8ce 0 10px, transparent 11px);
+  }
+  .ammo::before {
+    left: 29px;
+    top: 10px;
+    width: 14px;
+    height: 38px;
+    border-radius: 6px 6px 10px 10px;
+    background: linear-gradient(180deg, #fff1a8 0 22%, #e6b54f 22% 76%, #8e5b1d 76%);
+  }
+  .ammo::after {
+    left: 31px;
+    top: 7px;
+    width: 10px;
+    height: 10px;
+    background: #f7f0d2;
+    clip-path: polygon(50% 0%, 90% 100%, 10% 100%);
+  }
+  .oil::before {
+    left: 17px;
+    top: 13px;
+    width: 38px;
+    height: 46px;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #8f6030, #5b3c1e);
+  }
+  .oil::after {
+    left: 23px;
+    top: 29px;
+    content: "OIL";
+    position: absolute;
+    color: #f5e3b3;
+    font-size: 10px;
+    letter-spacing: 1px;
+    font-weight: 700;
+  }
+  .oil .band-top,
+  .oil .band-bottom {
+    position: absolute;
+    left: 17px;
+    width: 38px;
+    height: 7px;
+    background: rgba(255,255,255,0.14);
+  }
+  .oil .band-top { top: 20px; }
+  .oil .band-bottom { top: 44px; }
+  .mud::before {
+    left: 12px;
+    top: 20px;
+    width: 48px;
+    height: 28px;
+    border-radius: 16px 18px 14px 16px;
+    background: linear-gradient(180deg, #6f5838, #433120);
+    box-shadow: -10px 6px 0 -2px rgba(97,76,49,0.92), 10px 2px 0 -2px rgba(97,76,49,0.92);
+  }
+  .hardwall::before {
+    left: 14px;
+    top: 14px;
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    background: #7d4cf2;
+    box-shadow: inset 0 0 0 3px rgba(255,255,255,0.12);
+  }
+  .hardwall .num {
+    position: absolute;
+    left: 0;
+    top: 22px;
+    width: 72px;
+    text-align: center;
+    color: white;
+    font-size: 22px;
+    font-weight: 800;
+  }
+  .base::before {
+    left: 13px;
+    top: 13px;
+    width: 46px;
+    height: 46px;
+    background: linear-gradient(180deg, #f0b24b, #d99224);
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 3px rgba(58,38,7,0.32);
+  }
+  .base .cross-v,
+  .base .cross-h {
+    position: absolute;
+    background: #12151a;
+    border-radius: 3px;
+  }
+  .base .cross-v { left: 31px; top: 24px; width: 10px; height: 24px; }
+  .base .cross-h { left: 24px; top: 31px; width: 24px; height: 10px; }
+  .ring::before {
+    left: 11px;
+    top: 11px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 6px solid rgba(123,222,255,0.2);
+  }
+  .ring::after {
+    left: 11px;
+    top: 11px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 6px solid var(--cyan);
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    transform: rotate(22deg);
+  }
+  .revive::before {
+    left: 15px;
+    top: 15px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(102,212,255,0.38), rgba(102,212,255,0.08));
+    box-shadow: inset 0 0 0 2px rgba(102,212,255,0.52);
+  }
+  .revive::after {
+    left: 31px;
+    top: 22px;
+    width: 10px;
+    height: 26px;
+    background: #b7efff;
+    border-radius: 4px;
+    box-shadow: -8px 8px 0 -2px #b7efff, 8px 8px 0 -2px #b7efff;
+  }
+  .elite::before {
+    left: 18px;
+    top: 18px;
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(180deg, #ffdb6e, #ff8344);
+    clip-path: polygon(50% 0%, 88% 22%, 100% 62%, 74% 100%, 26% 100%, 0% 62%, 12% 22%);
+  }
+  .elite::after {
+    left: 29px;
+    top: 25px;
+    width: 14px;
+    height: 14px;
+    background: #321609;
+    clip-path: polygon(50% 0%, 61% 34%, 98% 36%, 68% 57%, 79% 92%, 50% 71%, 21% 92%, 32% 57%, 2% 36%, 39% 34%);
+  }
+</style>
+</head>
+<body data-page="icons" data-game-title="经典坦克大战平衡版">
+  <div class="page">
+    <div class="topbar">
+      <nav>
+        <a id="iconNavHome" href="../">首页</a>
+        <a id="iconNavPlay" href="../play/">开始游戏</a>
+        <a id="iconNavUpdates" href="../updates/">版本更新</a>
+        <a id="iconNavVersions" href="../versions/">历史版本</a>
+      </nav>
+      <div class="topbar-tools">
+        <div class="lang-switch" data-language-switch></div>
+      </div>
+    </div>
+    <section class="hero">
+      <div class="eyebrow" id="iconEyebrow">图标总览</div>
+      <h1 id="iconHeroTitle">图标总览</h1>
+      <p id="iconHeroDesc">这里集中展示当前正式版本里最常见的掉落物、地图机关与状态标记，方便区分真实效果与战场反馈。</p>
+    </section>
+    <section>
+      <h2 id="iconPowerupTitle">道具图标</h2>
+      <p id="iconPowerupDesc">这一组图标会在地图掉落时出现，全部改成无外框图形，优先保证战斗中一眼能认出功能。</p>
+      <div class="grid">
+        <article class="card"><div class="icon shield"></div><strong>护盾</strong><span>为基地提供阶段性防护与后续加固收益。</span></article>
+        <article class="card"><div class="icon bomb"><span class="fuse"></span></div><strong>炸弹</strong><span>靠近时会吸附拾取，生效后全场敌军统一掉 1 血。</span></article>
+        <article class="card"><div class="icon freeze"></div><strong>冻结</strong><span>短时间冻结敌军行动，适合压场和转火。</span></article>
+        <article class="card"><div class="icon star"></div><strong>星星</strong><span>提供玩家无敌保护，并配合环形倒计时显示。</span></article>
+        <article class="card"><div class="icon life"></div><strong>生命</strong><span>补充玩家生命，是中后期最稳的续航道具之一。</span></article>
+        <article class="card"><div class="icon ammo"></div><strong>弹药</strong><span>回满当前弹药，并永久增加 1 点弹药上限。</span></article>
+      </div>
+    </section>
+    <section>
+      <h2 id="iconTerrainTitle">地图机关与关键地块</h2>
+      <p id="iconTerrainDesc">这一组内容主要影响走位、守基地和场地交互，和普通掉落物是两条逻辑。</p>
+      <div class="grid">
+        <article class="card"><div class="icon oil"><span class="band-top"></span><span class="band-bottom"></span></div><strong>油桶</strong><span>可被引爆，周围单位统一受到 2 点伤害，并能连锁波及砖墙。</span></article>
+        <article class="card"><div class="icon mud"></div><strong>泥地</strong><span>进入后移动减速，冲刺不免疫减速但仍保留无敌帧。</span></article>
+        <article class="card"><div class="icon hardwall"><span class="num">5</span></div><strong>高血墙</strong><span>中心耐久墙，数字代表当前耐久值。</span></article>
+        <article class="card"><div class="icon base"><span class="cross-v"></span><span class="cross-h"></span></div><strong>基地核心</strong><span>需要重点保护的核心目标，周围防守砖会随奖励长期成长。</span></article>
+      </div>
+    </section>
+    <section>
+      <h2 id="iconStatusTitle">状态与场上标记</h2>
+      <p id="iconStatusDesc">这一组会跟随玩家、敌军或战场状态变化，用来帮助判断战斗节奏和特殊单位。</p>
+      <div class="grid">
+        <article class="card"><div class="icon ring"></div><strong>无敌环</strong><span>围绕坦克显示剩余无敌时间，越接近结束越容易察觉。</span></article>
+        <article class="card"><div class="icon revive"></div><strong>倒地信标</strong><span>双人模式下队友倒地后留下的救援目标，靠近读条可将其拉起。</span></article>
+        <article class="card"><div class="icon elite"></div><strong>精英标记</strong><span>提示带有护盾、速射、补给或潜伏词缀的强化敌军。</span></article>
+      </div>
+    </section>
+  </div>
+  <script src="../site-language.js"></script>
+</body>
+</html>

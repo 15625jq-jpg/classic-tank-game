@@ -471,6 +471,7 @@
           <a id="navPlay" href="./play/">开始游戏</a>
           <a id="navUpdates" href="./updates/">版本更新</a>
           <a id="navVersions" href="./versions/">历史版本</a>
+          <a id="navIcons" href="./icons/">图标总览</a>
           <a id="navRecords" href="./records/">完整记录</a>
         </nav>
         <div class="lang-switch" data-language-switch></div>
@@ -485,11 +486,11 @@
             <h1 id="homeTitle">经典坦克大战平衡版</h1>
             <p class="lead" id="homeLead">
               围绕单人 / 双人协作、Boss 关压力、地图轮换与操作反馈持续打磨的坦克防守版本。当前正式入口指向
-              <strong>v4.2</strong>，这一版在保留精英敌人、倒地救援、地图机关和遗物成长的基础上，又把炸弹体验和 Boss 奖励流程进一步收顺了。
+              <strong>v4.3</strong>，这一版重点把炸弹与油桶的真实规则重新校准，道具图标整体改成更易辨认的无边框风格，并把图标总览页正式接进了发布站。
             </p>
             <div class="hero-meta">
               <div class="pill">最新发布：2026-05-07</div>
-              <div class="pill">当前版本：v4.2</div>
+              <div class="pill">当前版本：v4.3</div>
               <div class="pill">支持单人 / 双人</div>
             </div>
           </div>
@@ -497,7 +498,8 @@
               <a class="button primary" id="homeStartButton" href="./play/">立即开始</a>
               <a class="button secondary" id="homeUpdatesButton" href="./updates/">查看更新</a>
               <a class="button secondary" id="homeVersionsButton" href="./versions/">历史版本</a>
-              <a class="button secondary" id="homeFileButton" href="./经典坦克大战平衡版v4.2.html">直接打开版本文件</a>
+              <a class="button secondary" id="homeIconsButton" href="./icons/">图标总览</a>
+              <a class="button secondary" id="homeFileButton" href="./经典坦克大战平衡版v4.3.html">直接打开版本文件</a>
           </div>
         </div>
         <div class="hero-shot" aria-label="游戏主界面截图">
@@ -513,13 +515,13 @@
       <section class="section">
         <div class="section-head">
           <h2 id="homeOverviewTitle">当前版本概览</h2>
-          <p id="homeOverviewDesc">把版本入口、玩法范围和内容规模放在一处看清楚，读起来会比之前那组数字卡片顺一点。</p>
+          <p id="homeOverviewDesc">把版本入口、玩法范围和当前重点放在一处，进站后就能很快看清这一版到底改了什么。</p>
         </div>
         <div class="status">
           <article class="panel overview-main">
             <div>
               <span class="overview-kicker">当前正式版本</span>
-              <strong>v4.2</strong>
+              <strong>v4.3</strong>
               <p>首页、游玩入口和历史版本页当前都围绕这一版组织，玩家默认进入的也是这个版本。</p>
             </div>
           </article>
@@ -535,7 +537,7 @@
               <span>地图轮换</span>
               <strong>4 张地图</strong>
             </div>
-            <p>场景会按轮换周期切换，避免每局都落在同一套地形节奏里。</p>
+            <p>场景会按轮换周期切换，草丛、墙体、油桶、泥地和基地周边结构会一起改变战斗节奏。</p>
           </article>
           <article class="panel overview-stat">
             <div>
@@ -550,7 +552,7 @@
       <section class="section">
         <div class="section-head">
           <h2 id="homeFocusTitle">玩法重点</h2>
-          <p id="homeFocusDesc">这版已经不只是原始坦克对射，而是逐步发展成一套带成长、预警和节奏补给的防守玩法。</p>
+          <p id="homeFocusDesc">这版已经不只是原始坦克对射，而是进一步长成了一套带精英词缀、协作救援、场地机关与长期遗物成长的防守玩法。</p>
         </div>
         <div class="grid-3">
           <article class="panel">
@@ -563,7 +565,7 @@
           </article>
           <article class="panel">
             <h3>场地交互</h3>
-            <p>地图含草地、砖墙、钢墙、高血量墙、油桶、泥地和基地防守结构；炸弹道具也会以玩家为中心触发范围爆破。</p>
+            <p>地图含草地、砖墙、钢墙、高血量墙、油桶、泥地和基地防守结构；炸弹回到全屏 1 伤害，油桶则负责周围 2 伤害的场地爆破。</p>
           </article>
         </div>
       </section>
@@ -602,15 +604,15 @@
           <!-- AUTO_HOME_CURRENT_RELEASE_START -->
           <article class="timeline-item">
             <header>
-              <h3>v4.2</h3>
+              <h3>v4.3</h3>
               <span>2026-05-07</span>
             </header>
             <ul>
-              <li>炸弹道具改为近身吸附拾取，靠近后会自动吸向最近的存活玩家，更容易在混战中拿到。</li>
-              <li>炸弹拾取后会在玩家周围触发固定半径爆破，对范围内敌军与 Boss 统一造成 2 点伤害，并清空敌方子弹。</li>
-              <li>Boss 奖励流程改为两轮常规 4 选 1，再进入一轮遗物 4 选 1，奖励页会明确显示当前轮次。</li>
-              <li>“下次 Boss 奖励”文本修正为“下次 Boss 额外追加一轮常规奖励”，避免旧文案和逻辑脱节。</li>
-              <li>同步修正规则说明、多语言文案与发布页摘要，正式游玩入口切换到 v4.2。</li>
+              <li>炸弹道具保留近身吸附拾取，但效果改回拾取时对全场敌军统一造成 1 点伤害。</li>
+              <li>油桶机关爆炸改为周围 2 点伤害，并在桶身上新增明显的 <code>OIL</code> 标记。</li>
+              <li>护盾、冻结、弹药、炸弹、生命、星星道具图标统一去掉方形边框，整体更容易区分。</li>
+              <li>新增正式“图标总览”页面，主页顶部导航和首屏按钮都可以直接进入查看。</li>
+              <li>同步修正规则说明、多语言壳子、更新页、历史版本页与完整记录描述，正式游玩入口切换到 v4.3。</li>
             </ul>
           </article>
 <!-- AUTO_HOME_CURRENT_RELEASE_END -->
@@ -649,13 +651,13 @@
           <!-- AUTO_HOME_HISTORY_START -->
           <article class="panel">
             <h3>当前正式版本</h3>
-            <p>v4.2 作为默认游玩入口，面向当前对外发布，并整合了炸弹体验补强与新的 Boss 奖励结算流程。</p>
-            <p><a href="./经典坦克大战平衡版v4.2.html" style="color:#f4c84a;">打开 v4.2</a></p>
+            <p>v4.3 作为默认游玩入口，面向当前对外发布，并把炸弹、油桶和整套图标辨识度一起重新收顺。</p>
+            <p><a href="./经典坦克大战平衡版v4.3.html" style="color:#f4c84a;">打开 v4.3</a></p>
           </article>
           <article class="panel">
             <h3>历史版本</h3>
-            <p>v4.1 作为上一正式版本保留，适合回看精英敌人、倒地救援、地图机关与 Boss 遗物这一轮主体内容。</p>
-            <p><a href="./经典坦克大战平衡版v4.1.html" style="color:#f4c84a;">打开 v4.1</a></p>
+            <p>v4.2 作为上一正式版本保留，适合回看炸弹范围爆破与上一轮 Boss 奖励结算方式的手感。</p>
+            <p><a href="./经典坦克大战平衡版v4.2.html" style="color:#f4c84a;">打开 v4.2</a></p>
           </article>
 <!-- AUTO_HOME_HISTORY_END -->
         </div>
