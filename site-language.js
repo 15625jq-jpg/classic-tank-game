@@ -18,7 +18,7 @@
         navVersions: "历史版本",
         navRecords: "完整记录",
         eyebrow: "正式发布入口",
-        lead: "围绕单人 / 双人协作、Boss 关压力、地图轮换与操作反馈持续打磨的坦克防守版本。当前正式入口指向 <strong>{version}</strong>，这一版把精英敌人、倒地救援、地图机关和 Boss 遗物成长线一起接进来了。",
+        lead: "围绕单人 / 双人协作、Boss 关压力、地图轮换与操作反馈持续打磨的坦克防守版本。当前正式入口指向 <strong>{version}</strong>，这一版在保留精英敌人、倒地救援、地图机关和 Boss 遗物成长线的基础上，又把炸弹体验和 Boss 奖励流程一起收顺了。",
         start: "立即开始",
         updates: "查看更新",
         versions: "历史版本",
@@ -71,7 +71,7 @@
           },
           {
             title: "成长系统",
-            desc: "Boss 通关后会先给常规强化，再给一件遗物，成长内容开始覆盖供弹、冲刺余辉、基地修筑和草丛索敌。"
+            desc: "Boss 通关后会先结算两轮常规奖励，再进入一轮遗物奖励，成长内容覆盖供弹、冲刺余辉、基地修筑和草丛索敌。"
           },
           {
             title: "场地交互",
@@ -90,7 +90,7 @@
         ],
         historyCards: {
           currentTitle: "当前正式版本",
-          currentDesc: "`{version}` 作为默认游玩入口，面向当前对外发布，并汇总了精英敌人、倒地救援、地图机关和 Boss 遗物这轮调整。",
+          currentDesc: "`{version}` 作为默认游玩入口，面向当前对外发布，并整合了精英敌人、倒地救援、地图机关、炸弹补强和 Boss 奖励流程这轮调整。",
           historyTitle: "历史版本",
           historyDesc: "`{version}` 作为可查找的历史版本保留，适合回看之前的手感与表现。",
           open: "打开 {version}"
@@ -104,7 +104,7 @@
         navVersions: "Versions",
         navRecords: "Full log",
         eyebrow: "Release entry",
-        lead: "A tank defense build refined around solo / co-op play, boss pressure, rotating maps and sharper controls. The current public entry points to <strong>{version}</strong>, and this build folds in elite enemies, revive support, map hazards and boss relic progression together.",
+        lead: "A tank defense build refined around solo / co-op play, boss pressure, rotating maps and sharper controls. The current public entry points to <strong>{version}</strong>, and this build keeps elite enemies, revive support, map hazards and boss relic progression while also tightening bomb handling and boss reward flow.",
         start: "Play now",
         updates: "See updates",
         versions: "Version history",
@@ -157,7 +157,7 @@
           },
           {
             title: "Progression",
-            desc: "Boss clears now hand out a standard upgrade first and a relic after it, expanding progression into ammo refunds, dash afterglow, field repair and grass tracking."
+            desc: "Boss clears now resolve through two standard reward rounds before one relic round, expanding progression into ammo refunds, dash afterglow, field repair and grass tracking."
           },
           {
             title: "Map interaction",
@@ -176,7 +176,7 @@
         ],
         historyCards: {
           currentTitle: "Current release",
-          currentDesc: "`{version}` is the default public play entry and currently rolls up elite enemies, revive support, map hazards and boss relic progression.",
+          currentDesc: "`{version}` is the default public play entry and currently rolls up elite enemies, revive support, map hazards, the bomb rework and the revised boss reward flow.",
           historyTitle: "Older build",
           historyDesc: "`{version}` remains available as a visible historical build for feel and balance comparison.",
           open: "Open {version}"
@@ -190,7 +190,7 @@
         navVersions: "旧バージョン",
         navRecords: "完全記録",
         eyebrow: "正式公開入口",
-        lead: "この防衛版は、1人 / 2人協力、Boss戦の圧力、マップ循環、操作感を中心に磨き続けています。現在の正式入口は <strong>{version}</strong> を指しており、今回は精鋭敵、救援復帰、地形ギミック、Boss遺物成長をまとめて加えています。",
+        lead: "この防衛版は、1人 / 2人協力、Boss戦の圧力、マップ循環、操作感を中心に磨き続けています。現在の正式入口は <strong>{version}</strong> を指しており、今回は精鋭敵、救援復帰、地形ギミック、Boss遺物成長に加えて、爆弾体験と Boss 報酬導線も整えています。",
         start: "今すぐ開始",
         updates: "更新を見る",
         versions: "履歴版",
@@ -243,7 +243,7 @@
           },
           {
             title: "成長要素",
-            desc: "Boss撃破後は通常報酬に加えて遺物も入り、補給連鎖、ダッシュ余光、基地修築、草むら索敵まで成長先が広がっています。"
+            desc: "Boss撃破後は通常報酬を2回選び、その後で遺物も入るため、補給連鎖、ダッシュ余光、基地修築、草むら索敵まで成長先が広がっています。"
           },
           {
             title: "地形との相互作用",
@@ -262,7 +262,7 @@
         ],
         historyCards: {
           currentTitle: "現在の正式版",
-          currentDesc: "`{version}` は現在の対外公開向けプレイ入口で、精鋭敵、救援復帰、地形ギミック、Boss遺物の今回調整をまとめています。",
+          currentDesc: "`{version}` は現在の対外公開向けプレイ入口で、精鋭敵、救援復帰、地形ギミックに加え、爆弾改修と Boss 報酬導線の整理までまとめています。",
           historyTitle: "旧バージョン",
           historyDesc: "`{version}` は比較や振り返り用の履歴版として残しています。",
           open: "{version} を開く"
@@ -276,7 +276,7 @@
         navVersions: "이전 버전",
         navRecords: "전체 기록",
         eyebrow: "정식 배포 입구",
-        lead: "이 방어형 탱크 빌드는 싱글 / 2인 협력, Boss 압박, 맵 순환, 조작 반응을 중심으로 계속 다듬어졌습니다. 현재 정식 입구는 <strong>{version}</strong> 을 가리키며, 이번에는 정예 적, 구조 부활, 맵 기믹, Boss 유물 성장선을 한꺼번에 붙였습니다.",
+        lead: "이 방어형 탱크 빌드는 싱글 / 2인 협력, Boss 압박, 맵 순환, 조작 반응을 중심으로 계속 다듬어졌습니다. 현재 정식 입구는 <strong>{version}</strong> 을 가리키며, 이번에는 정예 적, 구조 부활, 맵 기믹, Boss 유물 성장선에 더해 폭탄 체감과 Boss 보상 흐름도 함께 다듬었습니다.",
         start: "바로 시작",
         updates: "업데이트 보기",
         versions: "버전 기록",
@@ -329,7 +329,7 @@
           },
           {
             title: "성장 시스템",
-            desc: "Boss 클리어 후에는 일반 보상과 유물이 이어져, 탄약 환급, 대시 여운, 기지 보수, 풀숲 추적까지 성장 방향이 넓어졌습니다."
+            desc: "Boss 클리어 후에는 일반 보상을 두 번 고른 다음 유물을 고르기 때문에, 탄약 환급, 대시 여운, 기지 보수, 풀숲 추적까지 성장 방향이 넓어졌습니다."
           },
           {
             title: "지형 상호작용",
@@ -348,7 +348,7 @@
         ],
         historyCards: {
           currentTitle: "현재 정식 버전",
-          currentDesc: "`{version}` 은 현재 대외 공개용 기본 플레이 입구로, 정예 적, 구조 부활, 맵 기믹, Boss 유물 조정을 함께 담고 있습니다.",
+          currentDesc: "`{version}` 은 현재 대외 공개용 기본 플레이 입구로, 정예 적, 구조 부활, 맵 기믹, 폭탄 개편, Boss 보상 흐름 조정을 함께 담고 있습니다.",
           historyTitle: "이전 버전",
           historyDesc: "`{version}` 은 비교와 회고용으로 남겨 둔 기록 버전입니다.",
           open: "{version} 열기"
