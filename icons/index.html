@@ -136,6 +136,12 @@
     position: relative;
     flex: 0 0 auto;
   }
+  .icon-canvas {
+    width: 84px;
+    height: 84px;
+    display: block;
+    flex: 0 0 auto;
+  }
   .shield::before,
   .shield::after,
   .bomb::before,
@@ -422,34 +428,269 @@
       <h2 id="iconPowerupTitle">道具图标</h2>
       <p id="iconPowerupDesc">这一组图标会在地图掉落时出现，全部改成无外框图形，优先保证战斗中一眼能认出功能。</p>
       <div class="grid">
-        <article class="card"><div class="icon shield"></div><strong>护盾</strong><span>为基地提供阶段性防护与后续加固收益。</span></article>
-        <article class="card"><div class="icon bomb"><span class="fuse"></span></div><strong>炸弹</strong><span>靠近时会吸附拾取，生效后全场敌军统一掉 1 血。</span></article>
-        <article class="card"><div class="icon freeze"></div><strong>冻结</strong><span>短时间冻结敌军行动，适合压场和转火。</span></article>
-        <article class="card"><div class="icon star"></div><strong>星星</strong><span>提供玩家无敌保护，并配合环形倒计时显示。</span></article>
-        <article class="card"><div class="icon life"></div><strong>生命</strong><span>补充玩家生命，是中后期最稳的续航道具之一。</span></article>
-        <article class="card"><div class="icon ammo"></div><strong>弹药</strong><span>回满当前弹药，并永久增加 1 点弹药上限。</span></article>
+        <article class="card"><canvas class="icon-canvas" data-icon="shield" aria-hidden="true"></canvas><strong>护盾</strong><span>为基地提供阶段性防护与后续加固收益。</span></article>
+        <article class="card"><canvas class="icon-canvas" data-icon="bomb" aria-hidden="true"></canvas><strong>炸弹</strong><span>靠近时会吸附拾取，生效后全场敌军统一掉 1 血。</span></article>
+        <article class="card"><canvas class="icon-canvas" data-icon="freeze" aria-hidden="true"></canvas><strong>冻结</strong><span>短时间冻结敌军行动，适合压场和转火。</span></article>
+        <article class="card"><canvas class="icon-canvas" data-icon="star" aria-hidden="true"></canvas><strong>星星</strong><span>提供玩家无敌保护，并配合环形倒计时显示。</span></article>
+        <article class="card"><canvas class="icon-canvas" data-icon="life" aria-hidden="true"></canvas><strong>生命</strong><span>补充玩家生命，是中后期最稳的续航道具之一。</span></article>
+        <article class="card"><canvas class="icon-canvas" data-icon="ammo" aria-hidden="true"></canvas><strong>弹药</strong><span>回满当前弹药，并永久增加 1 点弹药上限。</span></article>
       </div>
     </section>
     <section>
       <h2 id="iconTerrainTitle">地图机关与关键地块</h2>
       <p id="iconTerrainDesc">这一组内容主要影响走位、守基地和场地交互，和普通掉落物是两条逻辑。</p>
       <div class="grid">
-        <article class="card"><div class="icon oil"><span class="band-top"></span><span class="band-bottom"></span></div><strong>油桶</strong><span>可被引爆，周围单位统一受到 2 点伤害，并能连锁波及砖墙。</span></article>
-        <article class="card"><div class="icon mud"></div><strong>泥地</strong><span>进入后移动减速，冲刺不免疫减速但仍保留无敌帧。</span></article>
-        <article class="card"><div class="icon hardwall"><span class="num">5</span></div><strong>高血墙</strong><span>中心耐久墙，数字代表当前耐久值。</span></article>
-        <article class="card"><div class="icon base"><span class="cross-v"></span><span class="cross-h"></span></div><strong>基地核心</strong><span>需要重点保护的核心目标，周围防守砖会随奖励长期成长。</span></article>
+        <article class="card"><canvas class="icon-canvas" data-icon="oil" aria-hidden="true"></canvas><strong>油桶</strong><span>可被引爆，周围单位统一受到 2 点伤害，并能连锁波及砖墙。</span></article>
+        <article class="card"><canvas class="icon-canvas" data-icon="mud" aria-hidden="true"></canvas><strong>泥地</strong><span>进入后移动减速，冲刺不免疫减速但仍保留无敌帧。</span></article>
+        <article class="card"><canvas class="icon-canvas" data-icon="hardwall" aria-hidden="true"></canvas><strong>高血墙</strong><span>中心耐久墙，数字代表当前耐久值。</span></article>
+        <article class="card"><canvas class="icon-canvas" data-icon="base" aria-hidden="true"></canvas><strong>基地核心</strong><span>需要重点保护的核心目标，周围防守砖会随奖励长期成长。</span></article>
       </div>
     </section>
     <section>
       <h2 id="iconStatusTitle">状态与场上标记</h2>
       <p id="iconStatusDesc">这一组会跟随玩家、敌军或战场状态变化，用来帮助判断战斗节奏和特殊单位。</p>
       <div class="grid">
-        <article class="card"><div class="icon ring"></div><strong>无敌环</strong><span>围绕坦克显示剩余无敌时间，越接近结束越容易察觉。</span></article>
-        <article class="card"><div class="icon revive"></div><strong>倒地信标</strong><span>双人模式下队友倒地后留下的救援目标，靠近读条可将其拉起。</span></article>
-        <article class="card"><div class="icon elite"></div><strong>精英标记</strong><span>提示带有护盾、速射、补给或潜伏词缀的强化敌军。</span></article>
+        <article class="card"><canvas class="icon-canvas" data-icon="ring" aria-hidden="true"></canvas><strong>无敌环</strong><span>围绕坦克显示剩余无敌时间，越接近结束越容易察觉。</span></article>
+        <article class="card"><canvas class="icon-canvas" data-icon="revive" aria-hidden="true"></canvas><strong>倒地信标</strong><span>双人模式下队友倒地后留下的救援目标，靠近读条可将其拉起。</span></article>
+        <article class="card"><canvas class="icon-canvas" data-icon="elite" aria-hidden="true"></canvas><strong>精英标记</strong><span>提示带有护盾、速射、补给或潜伏词缀的强化敌军。</span></article>
       </div>
     </section>
   </div>
   <script src="../site-language.js"></script>
+  <script>
+    (() => {
+      const SIZE = 84;
+      const drawHex = (ctx, radius) => {
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const a = -Math.PI / 2 + i * Math.PI / 3;
+          const x = Math.cos(a) * radius;
+          const y = Math.sin(a) * radius;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+      };
+      const drawStar = (ctx, outer, inner, points = 5) => {
+        ctx.beginPath();
+        for (let i = 0; i < points * 2; i++) {
+          const a = -Math.PI / 2 + i * Math.PI / points;
+          const r = i % 2 === 0 ? outer : inner;
+          const x = Math.cos(a) * r;
+          const y = Math.sin(a) * r;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+      };
+      const drawHeart = (ctx, scale = 1) => {
+        ctx.beginPath();
+        ctx.moveTo(0, 18 * scale);
+        ctx.bezierCurveTo(-22 * scale, -2 * scale, -18 * scale, -20 * scale, -6 * scale, -20 * scale);
+        ctx.bezierCurveTo(-1 * scale, -20 * scale, 0, -14 * scale, 0, -10 * scale);
+        ctx.bezierCurveTo(0, -14 * scale, 1 * scale, -20 * scale, 6 * scale, -20 * scale);
+        ctx.bezierCurveTo(18 * scale, -20 * scale, 22 * scale, -2 * scale, 0, 18 * scale);
+        ctx.closePath();
+      };
+      const drawBlob = (ctx) => {
+        ctx.beginPath();
+        ctx.ellipse(0, 3, 21, 13, -0.12, 0, Math.PI * 2);
+        ctx.ellipse(-14, 7, 11, 8, -0.2, 0, Math.PI * 2);
+        ctx.ellipse(14, 5, 12, 8, 0.14, 0, Math.PI * 2);
+        ctx.closePath();
+      };
+      const drawCanvas = (canvas) => {
+        const icon = canvas.dataset.icon;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = SIZE * dpr;
+        canvas.height = SIZE * dpr;
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, SIZE, SIZE);
+        ctx.translate(SIZE / 2, SIZE / 2);
+
+        if (icon === "shield") {
+          const g = ctx.createLinearGradient(0, -26, 0, 28);
+          g.addColorStop(0, "#8cdcff");
+          g.addColorStop(1, "#236bff");
+          ctx.fillStyle = g;
+          drawHex(ctx, 26);
+          ctx.fill();
+          ctx.fillStyle = "rgba(255,255,255,0.3)";
+          ctx.fillRect(-4, -15, 8, 30);
+        } else if (icon === "bomb") {
+          ctx.fillStyle = "#f97316";
+          for (let i = 0; i < 8; i++) {
+            const a = i * Math.PI / 4;
+            const inner = 8;
+            const outer = 17;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(a) * inner, Math.sin(a) * inner);
+            ctx.lineTo(Math.cos(a + 0.16) * outer, Math.sin(a + 0.16) * outer);
+            ctx.lineTo(Math.cos(a - 0.16) * outer, Math.sin(a - 0.16) * outer);
+            ctx.closePath();
+            ctx.fill();
+          }
+          ctx.fillStyle = "#7c2d12";
+          ctx.beginPath();
+          ctx.arc(0, 3, 9, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#fed7aa";
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.moveTo(1, -2);
+          ctx.quadraticCurveTo(8, -10, 5, -15);
+          ctx.stroke();
+          ctx.fillStyle = "#fde68a";
+          ctx.beginPath();
+          ctx.moveTo(6, -17);
+          ctx.lineTo(10, -12);
+          ctx.lineTo(4, -11);
+          ctx.closePath();
+          ctx.fill();
+        } else if (icon === "freeze") {
+          const g = ctx.createLinearGradient(0, -28, 0, 28);
+          g.addColorStop(0, "#bdf5ff");
+          g.addColorStop(1, "#5ca8ff");
+          ctx.fillStyle = g;
+          drawHex(ctx, 26);
+          ctx.fill();
+          ctx.strokeStyle = "rgba(255,255,255,0.75)";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(-10, -5);
+          ctx.lineTo(10, -5);
+          ctx.moveTo(-6, 4);
+          ctx.lineTo(6, 4);
+          ctx.moveTo(-4, -14);
+          ctx.lineTo(5, -8);
+          ctx.stroke();
+        } else if (icon === "star") {
+          const g = ctx.createLinearGradient(0, -24, 0, 24);
+          g.addColorStop(0, "#ffe989");
+          g.addColorStop(1, "#efb925");
+          ctx.fillStyle = g;
+          drawStar(ctx, 26, 12, 5);
+          ctx.fill();
+          ctx.fillStyle = "rgba(255,255,255,0.5)";
+          ctx.beginPath();
+          ctx.arc(-4, -4, 3, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (icon === "life") {
+          ctx.fillStyle = "#fb7185";
+          drawHeart(ctx, 1);
+          ctx.fill();
+        } else if (icon === "ammo") {
+          const g = ctx.createLinearGradient(0, -18, 0, 18);
+          g.addColorStop(0, "#fff2ad");
+          g.addColorStop(0.45, "#f0b94f");
+          g.addColorStop(1, "#8e5a1d");
+          ctx.fillStyle = g;
+          ctx.fillRect(-7, -18, 14, 34);
+          ctx.fillStyle = "#f7f0d2";
+          ctx.beginPath();
+          ctx.moveTo(-7, -18);
+          ctx.lineTo(0, -28);
+          ctx.lineTo(7, -18);
+          ctx.closePath();
+          ctx.fill();
+          ctx.fillStyle = "#7c2d12";
+          ctx.fillRect(-7, 13, 14, 5);
+        } else if (icon === "oil") {
+          const g = ctx.createLinearGradient(0, -24, 0, 28);
+          g.addColorStop(0, "#8f6030");
+          g.addColorStop(1, "#5b3c1e");
+          ctx.fillStyle = g;
+          ctx.fillRect(-20, -24, 40, 50);
+          ctx.strokeStyle = "#f6d8a6";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(-20, -24, 40, 50);
+          ctx.fillStyle = "rgba(255,255,255,0.15)";
+          ctx.fillRect(-20, -14, 40, 6);
+          ctx.fillRect(-20, 10, 40, 6);
+          ctx.fillStyle = "#f5e3b3";
+          ctx.font = "bold 11px Arial";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("OIL", 0, 1);
+        } else if (icon === "mud") {
+          const g = ctx.createLinearGradient(0, -16, 0, 18);
+          g.addColorStop(0, "#6d5536");
+          g.addColorStop(1, "#402e1d");
+          ctx.fillStyle = g;
+          drawBlob(ctx);
+          ctx.fill();
+          ctx.fillStyle = "rgba(111,85,54,0.92)";
+          ctx.beginPath();
+          ctx.ellipse(-11, 10, 11, 4, -0.2, 0, Math.PI * 2);
+          ctx.ellipse(11, 8, 10, 4, 0.12, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (icon === "hardwall") {
+          ctx.fillStyle = "#7d4cf2";
+          ctx.fillRect(-21, -21, 42, 42);
+          ctx.strokeStyle = "rgba(255,255,255,0.18)";
+          ctx.lineWidth = 3;
+          ctx.strokeRect(-21, -21, 42, 42);
+          ctx.fillStyle = "#fff";
+          ctx.font = "bold 24px Arial";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("5", 0, 2);
+        } else if (icon === "base") {
+          const g = ctx.createLinearGradient(0, -22, 0, 22);
+          g.addColorStop(0, "#f0b24b");
+          g.addColorStop(1, "#d99224");
+          ctx.fillStyle = g;
+          ctx.fillRect(-23, -23, 46, 46);
+          ctx.strokeStyle = "rgba(58,38,7,0.32)";
+          ctx.lineWidth = 3;
+          ctx.strokeRect(-23, -23, 46, 46);
+          ctx.fillStyle = "#12151a";
+          ctx.fillRect(-5, -12, 10, 24);
+          ctx.fillRect(-12, -5, 24, 10);
+        } else if (icon === "ring") {
+          ctx.strokeStyle = "rgba(123,222,255,0.18)";
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.arc(0, 0, 25, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.strokeStyle = "#87e2ff";
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.arc(0, 0, 25, -Math.PI / 2, -Math.PI / 2 + Math.PI * 1.45);
+          ctx.stroke();
+        } else if (icon === "revive") {
+          const g = ctx.createRadialGradient(0, 0, 4, 0, 0, 26);
+          g.addColorStop(0, "rgba(102,212,255,0.35)");
+          g.addColorStop(1, "rgba(102,212,255,0.05)");
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(0, 0, 25, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "rgba(102,212,255,0.55)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(0, 0, 25, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = "#b7efff";
+          ctx.fillRect(-4, -16, 8, 32);
+          ctx.fillRect(-16, -4, 32, 8);
+        } else if (icon === "elite") {
+          const g = ctx.createLinearGradient(0, -22, 0, 22);
+          g.addColorStop(0, "#ffdb6e");
+          g.addColorStop(1, "#ff8344");
+          ctx.fillStyle = g;
+          drawHex(ctx, 24);
+          ctx.fill();
+          ctx.fillStyle = "#321609";
+          drawStar(ctx, 13, 5.5, 5);
+          ctx.fill();
+        }
+      };
+
+      document.querySelectorAll(".icon-canvas").forEach(drawCanvas);
+    })();
+  </script>
 </body>
 </html>

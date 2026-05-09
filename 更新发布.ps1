@@ -278,6 +278,8 @@ function Build-ReadmeContent {
   $lines.Add("")
   $lines.Add("正式发布目录，包含首页、游玩入口、版本更新页与历史版本入口。")
   $lines.Add("")
+  $lines.Add("在线游玩网址：[https://15625jq-jpg.github.io/classic-tank-game/](https://15625jq-jpg.github.io/classic-tank-game/)")
+  $lines.Add("")
   $lines.Add("## 结构说明")
   $lines.Add("")
   $lines.Add('- `index.html`：正式首页，展示当前版本、更新入口和历史版本入口。')
