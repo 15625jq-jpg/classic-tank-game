@@ -1,0 +1,5298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>经典坦克大战 · 平衡版 v4.4</title>
+<style>
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #050505;
+    font-family: Arial, "Microsoft YaHei", sans-serif;
+    color: #fff;
+  }
+  #game {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    image-rendering: pixelated;
+    background: #000;
+    box-shadow: 0 0 24px rgba(0,0,0,.6);
+  }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<script>
+(() => {
+  "use strict";
+
+  const BASE_W = 1040;
+  const BASE_H = 832;
+  const GAME_W = 832;
+  const SIDE_W = BASE_W - GAME_W;
+  const GAME_VERSION = "v4.4";
+  const RULES_PAGE_COUNT = 2;
+  const LANGUAGE_STORAGE_KEY = "tank_site_lang_v1";
+  const LANGUAGE_CODES = ["zh-CN", "en", "ja", "ko"];
+  const LANGUAGE_META = {
+    "zh-CN": { short: "中", name: "简体中文", locale: "zh-CN" },
+    "en": { short: "EN", name: "English", locale: "en-US" },
+    "ja": { short: "日", name: "日本語", locale: "ja-JP" },
+    "ko": { short: "한", name: "한국어", locale: "ko-KR" }
+  };
+  const I18N = {
+    "zh-CN": {
+      page: { documentTitle: "经典坦克大战 · 平衡版 v4.4" },
+      mode: { single: "单人", duo: "双人", all: "全部模式" },
+      difficulty: { all: "全部难度", easy: "简单", normal: "普通", hard: "困难" },
+      menu: {
+        mode: "模式：{value}",
+        difficulty: "难度：{value}",
+        stage: "起始关卡：{value}",
+        language: "语言：{value}",
+        rules: "规则说明",
+        icons: "图标总览",
+        settings: "键位设置",
+        leaderboard: "历史排行",
+        start: "开始游戏",
+        hint: "↑↓ 选择　←→ 修改　Enter 确认　H 规则　I 图标　K 键位　L 排行",
+        quickStart: "也可以直接按 1 单人开始 / 2 双人开始",
+        controlSummary: "玩家1：{p1}　玩家2：{p2}"
+      },
+      settings: {
+        title: "键位设置",
+        restoreDefaults: "恢复默认键位",
+        restoreHint: "Enter 重置全部",
+        rebinding: "正在修改 P{player} {action}，按任意键保存，Esc 取消",
+        help: "↑↓ 选择　Enter 修改　R 恢复默认　Esc / K 返回",
+        item: "项目",
+        current: "当前按键",
+        desc: "说明",
+        actions: {
+          up: "上移",
+          down: "下移",
+          left: "左移",
+          right: "右移",
+          shoot: "开火",
+          dash: "冲刺"
+        },
+        actionDesc: "P{player} {action}"
+      },
+      hud: {
+        stage: "关卡",
+        enemies: "敌人",
+        score: "分数",
+        difficulty: "难度",
+        life: "命",
+        ammo: "弹",
+        crit: "暴击率",
+        dash: "冲刺",
+        reload: "装填",
+        singleBalance: "单人补正已启用",
+        singleBalanceValue: "Boss 70% / 敌军 72%",
+        frozen: "敌军冻结中",
+        baseShield: "基地钢墙护盾",
+        downed: "倒地",
+        controls: "P暂停  R重开  菜单可改键位",
+        best: "最高分",
+        unlocked: "已解锁关卡",
+        shieldSuffix: "护盾"
+      },
+      rules: {
+        title: "规则说明",
+        back: "Esc / Backspace / Enter / H 返回主菜单",
+        blocks: {
+          quickStart: {
+            title: "快速上手",
+            lines: [
+              "主菜单选择模式、难度显示和起始关卡。",
+              "主菜单可打开规则说明、键位设置和历史排行。",
+              "Enter 确认当前选项；1 / 2 可直接开始。",
+              "游戏中 P 暂停，R 重开当前关卡。"
+            ]
+          },
+          winLose: {
+            title: "胜负规则",
+            lines: [
+              "摧毁本关全部敌军即可通关。",
+              "基地被击毁，或所有玩家生命耗尽，则游戏失败。",
+              "普通关通关后，所有玩家自动 +1 命。"
+            ]
+          },
+          player: {
+            title: "玩家设定",
+            lines: [
+              "玩家初始 3 命，本局命数不设上限。",
+              "初始弹药 20 发，弹药上限可通过奖励和补给继续提升。",
+              "弹药耗尽会自动装填，基础装填时间为 2.5 秒。",
+              "当前键位：P1 {p1}。",
+              "当前键位：P2 {p2}。",
+              "冲刺基础冷却 5 秒，冲刺期间有短暂无敌帧。",
+              "双人模式下，倒地玩家会留下短暂救援窗口，可由队友拉起。",
+              "单人模式会获得额外平衡补正和更友好的补给节奏。"
+            ]
+          },
+          terrain: {
+            title: "地形设定",
+            lines: [
+              "砖墙可被子弹破坏，钢墙会阻挡子弹，油桶可被引爆并对周围造成 2 点伤害。",
+              "水域阻挡移动，泥地区域会让玩家与敌军一起减速。",
+              "敌军进入草地后会潜伏隐藏，并在开火、受击或起手技能时短暂显形。",
+              "紫色高血量墙初始 5 点生命，需要多次击破。",
+              "地图每 4 关轮换一次，并采用非左右对称布局。"
+            ]
+          },
+          enemy: {
+            title: "敌军设定",
+            lines: [
+              "普通敌人：基础单位，击毁得 100 分。",
+              "快速敌人：速度更快，击毁得 150 分。",
+              "重型敌人：生命为 3，击毁得 300 分。",
+              "射手敌人：射击更频繁，击毁得 220 分。",
+              "第 5 关后会逐步出现精英敌人：护盾、速射、补给、潜伏。"
+            ]
+          },
+          boss: {
+            title: "Boss 设定",
+            lines: [
+              "每 4 关为 Boss 关，只刷新 1 名 Boss。",
+              "Boss 关会伴随 1~2 名小兵干扰，小兵也可能带精英词缀。",
+              "赤盾统帅会周期性开盾，并拥有额外生命。",
+              "绯焰炮王会交替释放正十字和斜向弹幕。",
+              "紫电突袭者会高速冲锋，近身撞击会造成伤害。",
+              "Boss 出招前会有短暂预警，半血后进入二阶段。",
+              "Boss 胜利后会先进入一轮常规 3 选 1，再进入一轮遗物奖励。"
+            ]
+          },
+          reward: {
+            title: "道具与奖励",
+            lines: [
+              "护盾强化基地，炸弹靠近玩家会吸附，拾取后会对全场敌军造成 1 点伤害。",
+              "冻结暂停敌军行动，星星给予玩家 6 秒无敌。",
+              "生命和弹药道具用于续航，弹药补给还会额外提高 1 点永久上限。",
+              "暴击子弹可额外抵消 1 发敌方子弹。",
+              "油桶爆炸会对周围单位造成 2 点伤害，并可连锁引爆其他油桶。",
+              "Boss 胜利后会先进入一轮常规 3 选 1，之后再进入一轮遗物奖励。",
+              "遗物提供连锁供弹、冲刺余辉、战地修筑、穿草索敌等长期强化。"
+            ]
+          },
+          progress: {
+            title: "进度与难度",
+            lines: [
+              "最高分、历史排行和已解锁关卡会保存在本地。",
+              "简单模式敌人更少更慢，道具出现更友好。",
+              "困难模式敌人更多更快，射手比例和 AI 更强。",
+              "排行榜支持按单人/双人和难度筛选查看。",
+              "暴击率、冲刺冷却、倒地倒计时等关键状态会显示在 HUD 中。"
+            ]
+          }
+        }
+      },
+      leaderboard: {
+        title: "历史排行榜",
+        help: "←→ 模式筛选　↑↓ 难度筛选　Enter / Esc / L 返回",
+        best: "本地最高分：{value}",
+        summary: "记录按分数、关卡和时间排序，最多保留前 30 条，本页显示前 10。",
+        filters: { mode: "模式：{value}", difficulty: "难度：{value}" },
+        empty: "当前筛选下暂无记录，换个模式或难度试试。",
+        headers: ["排名", "分数", "关卡", "模式", "难度", "结果", "用时", "时间"]
+      },
+      pause: { title: "已暂停", items: ["继续游戏", "重开本关", "返回主菜单"] },
+      stageClear: {
+        title: "关卡 {stage} 完成！",
+        reward: "全体玩家 +1 命",
+        next: "准备进入下一关..."
+      },
+      reward: {
+        title: "Boss常规奖励",
+        prompt: "按 {keys} 选择奖励",
+        life1: "全体 +1 命",
+        life2: "血量最少玩家 +2 命",
+        baseShield: "基地周围随机三块砖永久 +1 抗打次数",
+        ammoCapUp: "全体弹药上限 +10",
+        bulletUp: "全体子弹速度 +1",
+        doubleDamage: "全体 +10% 概率造成 2 点伤害",
+        reloadFaster: "全体填弹时间 -0.4s",
+        dashFaster: "全体冲刺冷却 -0.6s",
+        lifeTransfer: "高血量玩家 -1 命，另一人 +2~4 命"
+      },
+      relics: {
+        title: "Boss遗物奖励",
+        prompt: "按 {keys} 选择遗物",
+        ammoEcho: "连锁供弹：暴击命中时返还 1 发弹药（带短冷却）",
+        dashAfterglow: "冲刺余辉：冲刺结束后追加一小段护盾时间",
+        fieldRepair: "战地修筑：每次通关后额外加固 2 次基地砖",
+        grassTracker: "穿草索敌：敌军在草中显形后会多停留一小段时间"
+      },
+      result: {
+        gameOver: "游戏结束",
+        baseDestroyed: "基地被摧毁",
+        allDown: "玩家全灭"
+      },
+      boss: {
+        title: "BOSS",
+        none: "当前无Boss",
+        hp: "HP {hp} / {max}",
+        mechanic: "机制：{value}",
+        phase: "阶段：{value}",
+        phase1: "一阶段",
+        phase2: "二阶段",
+        warning: "预警：{value}",
+        intro: "BOSS 登场",
+        types: {
+          bossShield: "赤盾统帅",
+          bossBurst: "绯焰炮王",
+          bossDash: "紫电突袭者",
+          unknown: "Boss"
+        },
+        mechanics: {
+          bossShield: "短盾护体",
+          bossBurst: "正斜交替",
+          bossDash: "冲锋撞击",
+          unknown: "-"
+        },
+        cast: {
+          idle: "待机",
+          shield: "护盾展开",
+          burstCross: "正十字齐射",
+          burstDiag: "斜线齐射",
+          dash: "冲锋蓄力",
+          warning: "技能预警"
+        }
+      },
+      map: { names: ["西侧废墟", "斜线阵地", "河湾工事", "错位堡垒"] },
+      stageIntro: {
+        bossTitle: "第 {stage} 关 · Boss战",
+        bossText: "{boss}  HP {hp}  小兵 {minions}  地图 {map}",
+        normalTitle: "第 {stage} 关",
+        normalText: "敌军 {enemyCount}  场上 {maxOnField}  地图 {map}"
+      },
+      effects: {
+        crit: "暴击!",
+        dodge: "闪避",
+        dash: "冲刺",
+        invulnDodge: "无敌闪避",
+        shieldBlock: "护盾抵挡",
+        ram: "冲撞!",
+        phase2: "二阶段!",
+        reloading: "装填中",
+        ammoEmpty: "弹药耗尽"
+      },
+      dash: { active: "冲刺中", ready: "就绪" }
+    },
+    "en": {
+      page: { documentTitle: "Classic Tank Battle · Balance Edition v4.4" },
+      mode: { single: "Solo", duo: "Co-op", all: "All modes" },
+      difficulty: { all: "All levels", easy: "Easy", normal: "Normal", hard: "Hard" },
+      menu: {
+        mode: "Mode: {value}",
+        difficulty: "Difficulty: {value}",
+        stage: "Start stage: {value}",
+        language: "Language: {value}",
+        rules: "Rules",
+        icons: "Icon guide",
+        settings: "Key bindings",
+        leaderboard: "Leaderboard",
+        start: "Start game",
+        hint: "↑↓ Select  ←→ Change  Enter Confirm  H Rules  I Icons  K Keys  L Rank",
+        quickStart: "You can also press 1 for solo / 2 for co-op",
+        controlSummary: "P1: {p1}  P2: {p2}"
+      },
+      settings: {
+        title: "Key bindings",
+        restoreDefaults: "Restore defaults",
+        restoreHint: "Press Enter to reset all",
+        rebinding: "Editing P{player} {action}. Press any key to save, Esc to cancel",
+        help: "↑↓ Select  Enter Edit  R Reset  Esc / K Back",
+        item: "Action",
+        current: "Current key",
+        desc: "Info",
+        actions: {
+          up: "Move up",
+          down: "Move down",
+          left: "Move left",
+          right: "Move right",
+          shoot: "Shoot",
+          dash: "Dash"
+        },
+        actionDesc: "P{player} {action}"
+      },
+      hud: {
+        stage: "Stage",
+        enemies: "Enemies",
+        score: "Score",
+        difficulty: "Level",
+        life: "Life",
+        ammo: "Ammo",
+        crit: "Crit",
+        dash: "Dash",
+        reload: "Reload",
+        singleBalance: "Solo balance active",
+        singleBalanceValue: "Boss 70% / Enemies 72%",
+        frozen: "Enemies frozen",
+        baseShield: "Base steel shield",
+        downed: "Downed",
+        controls: "P Pause  R Restart  Change keys in menu",
+        best: "Best score",
+        unlocked: "Unlocked stage",
+        shieldSuffix: " shield"
+      },
+      rules: {
+        title: "Rules",
+        back: "Esc / Backspace / Enter / H back to menu",
+        blocks: {
+          quickStart: {
+            title: "Quick start",
+            lines: [
+              "Pick mode, difficulty and start stage in the menu.",
+              "The menu also opens rules, key bindings and rankings.",
+              "Enter confirms the current item. 1 / 2 starts right away.",
+              "Press P to pause and R to restart the current stage."
+            ]
+          },
+          winLose: {
+            title: "Win / lose",
+            lines: [
+              "Destroy every enemy in the current stage to clear it.",
+              "You lose if the base is destroyed or every player runs out of lives.",
+              "After a normal stage, all players gain +1 life."
+            ]
+          },
+          player: {
+            title: "Player setup",
+            lines: [
+              "Players start with 3 lives and there is no life cap during a run.",
+              "Starting ammo is 20 and can keep growing through rewards and pickups.",
+              "Ammo reloads automatically when empty. Base reload time is 2.5 seconds.",
+              "Current controls: P1 {p1}.",
+              "Current controls: P2 {p2}.",
+              "Base dash cooldown is 5 seconds and includes brief invulnerability.",
+              "In co-op, a downed teammate leaves a short revive window on the ground.",
+              "Solo mode gets extra balance help and friendlier supplies."
+            ]
+          },
+          terrain: {
+            title: "Terrain",
+            lines: [
+              "Brick walls can be destroyed. Steel walls block bullets. Oil barrels explode for 2 damage around them.",
+              "Water blocks movement and mud slows both players and enemies.",
+              "Enemies hide inside grass and briefly reveal when firing, taking damage or starting a skill.",
+              "Purple hard walls start with 5 HP and need repeated hits.",
+              "The map rotates every 4 stages with asymmetrical layouts."
+            ]
+          },
+          enemy: {
+            title: "Enemies",
+            lines: [
+              "Normal: base unit, worth 100 points.",
+              "Fast: moves quicker, worth 150 points.",
+              "Heavy: has 3 HP, worth 300 points.",
+              "Shooter: fires more often, worth 220 points.",
+              "From stage 5 onward, elite enemies start appearing with shield, rapid, supply or ambush traits."
+            ]
+          },
+          boss: {
+            title: "Bosses",
+            lines: [
+              "Every 4th stage is a boss stage with only one boss.",
+              "Boss stages also spawn 1 to 2 minions, and those minions can be elite.",
+              "Shield Marshal raises a shield and has extra health.",
+              "Flame Artillery alternates cross and diagonal volleys.",
+              "Violet Raider dashes hard and deals contact damage.",
+              "Bosses telegraph skills briefly and enter phase two at half HP.",
+              "After a boss clear, you now pick one standard 3-choice reward before moving to one relic reward page."
+            ]
+          },
+          reward: {
+            title: "Items and rewards",
+            lines: [
+              "Shield protects the base. Bomb still attracts to nearby players, and picking it up deals 1 damage to every enemy on the field.",
+              "Freeze stops enemy actions. Star grants 6 seconds of player invulnerability.",
+              "Life and ammo items sustain the run, and ammo pickups also add +1 permanent ammo cap.",
+              "Critical bullets can cancel one extra enemy shot.",
+              "Oil barrel blasts deal 2 damage to nearby units and can chain into other barrels.",
+              "Boss clears now resolve as one standard 3-choice reward page, followed by one relic reward page.",
+              "Relics add long-term perks such as ammo refund, dash afterglow, field repair and grass tracking."
+            ]
+          },
+          progress: {
+            title: "Progress and difficulty",
+            lines: [
+              "Best score, rankings and unlocked stages are stored locally.",
+              "Easy has fewer slower enemies and friendlier drops.",
+              "Hard has more faster enemies, more shooters and smarter AI.",
+              "The leaderboard can be filtered by mode and difficulty.",
+              "Crit rate, dash cooldown, downed timers and similar states appear on the HUD."
+            ]
+          }
+        }
+      },
+      leaderboard: {
+        title: "Leaderboard",
+        help: "←→ Mode  ↑↓ Level  Enter / Esc / L Back",
+        best: "Best local score: {value}",
+        summary: "Sorted by score, stage and time. Up to 30 runs are kept, top 10 are shown here.",
+        filters: { mode: "Mode: {value}", difficulty: "Level: {value}" },
+        empty: "No record for this filter. Try another mode or difficulty.",
+        headers: ["Rank", "Score", "Stage", "Mode", "Level", "Result", "Run", "Time"]
+      },
+      pause: { title: "Paused", items: ["Resume", "Restart stage", "Back to menu"] },
+      stageClear: {
+        title: "Stage {stage} clear!",
+        reward: "+1 life for all players",
+        next: "Preparing the next stage..."
+      },
+      reward: {
+        title: "Boss standard reward",
+        prompt: "Press {keys} to choose",
+        life1: "+1 life for everyone",
+        life2: "+2 lives to the lowest HP player",
+        baseShield: "Three random base bricks permanently gain +1 durability",
+        ammoCapUp: "+10 max ammo for everyone",
+        bulletUp: "+1 bullet speed for everyone",
+        doubleDamage: "+10% chance to deal 2 damage",
+        reloadFaster: "-0.4s reload time for everyone",
+        dashFaster: "-0.6s dash cooldown for everyone",
+        lifeTransfer: "Highest HP player -1 life, the other gains +2~4"
+      },
+      relics: {
+        title: "Boss relic reward",
+        prompt: "Press {keys} to choose a relic",
+        ammoEcho: "Ammo Echo: critical hits refund 1 ammo with a short cooldown",
+        dashAfterglow: "Dash Afterglow: gain a brief shield window after a dash ends",
+        fieldRepair: "Field Repair: reinforce base bricks 2 more times after every clear",
+        grassTracker: "Grass Tracker: enemies stay visible a bit longer after revealing in grass"
+      },
+      result: {
+        gameOver: "Game over",
+        baseDestroyed: "Base destroyed",
+        allDown: "All players down"
+      },
+      boss: {
+        title: "BOSS",
+        none: "No boss active",
+        hp: "HP {hp} / {max}",
+        mechanic: "Pattern: {value}",
+        phase: "Phase: {value}",
+        phase1: "Phase 1",
+        phase2: "Phase 2",
+        warning: "Warning: {value}",
+        intro: "BOSS ARRIVAL",
+        types: {
+          bossShield: "Shield Marshal",
+          bossBurst: "Flame Artillery",
+          bossDash: "Violet Raider",
+          unknown: "Boss"
+        },
+        mechanics: {
+          bossShield: "Shield stance",
+          bossBurst: "Cross / diagonal volleys",
+          bossDash: "Dash impact",
+          unknown: "-"
+        },
+        cast: {
+          idle: "Idle",
+          shield: "Shield up",
+          burstCross: "Cross burst",
+          burstDiag: "Diagonal burst",
+          dash: "Dash charge",
+          warning: "Skill warning"
+        }
+      },
+      map: { names: ["West ruins", "Diagonal line", "River bend", "Offset keep"] },
+      stageIntro: {
+        bossTitle: "Stage {stage} · Boss",
+        bossText: "{boss}  HP {hp}  Minions {minions}  Map {map}",
+        normalTitle: "Stage {stage}",
+        normalText: "Enemies {enemyCount}  On field {maxOnField}  Map {map}"
+      },
+      effects: {
+        crit: "Critical!",
+        dodge: "Dodge",
+        dash: "Dash",
+        invulnDodge: "Invuln dodge",
+        shieldBlock: "Shield block",
+        ram: "Ram!",
+        phase2: "Phase 2!",
+        reloading: "Reloading",
+        ammoEmpty: "Ammo empty"
+      },
+      dash: { active: "Dashing", ready: "Ready" }
+    },
+    "ja": {
+      page: { documentTitle: "クラシックタンク大戦 · バランス版 v4.4" },
+      mode: { single: "1人", duo: "2人", all: "全モード" },
+      difficulty: { all: "全難度", easy: "簡単", normal: "普通", hard: "困難" },
+      menu: {
+        mode: "モード：{value}",
+        difficulty: "難度：{value}",
+        stage: "開始ステージ：{value}",
+        language: "言語：{value}",
+        rules: "ルール",
+        icons: "アイコン一覧",
+        settings: "キー設定",
+        leaderboard: "ランキング",
+        start: "ゲーム開始",
+        hint: "↑↓ 選択  ←→ 変更  Enter 決定  H ルール  I アイコン  K キー  L ランク",
+        quickStart: "1で1人開始 / 2で2人開始も可能",
+        controlSummary: "P1：{p1}　P2：{p2}"
+      },
+      settings: {
+        title: "キー設定",
+        restoreDefaults: "初期設定に戻す",
+        restoreHint: "Enter ですべてリセット",
+        rebinding: "P{player} {action} を変更中。任意キーで保存、Escで取消",
+        help: "↑↓ 選択  Enter 変更  R 初期化  Esc / K 戻る",
+        item: "項目",
+        current: "現在のキー",
+        desc: "説明",
+        actions: {
+          up: "上移動",
+          down: "下移動",
+          left: "左移動",
+          right: "右移動",
+          shoot: "発射",
+          dash: "ダッシュ"
+        },
+        actionDesc: "P{player} {action}"
+      },
+      hud: {
+        stage: "ステージ",
+        enemies: "敵",
+        score: "得点",
+        difficulty: "難度",
+        life: "残機",
+        ammo: "弾",
+        crit: "会心率",
+        dash: "ダッシュ",
+        reload: "装填",
+        singleBalance: "1人用補正が有効",
+        singleBalanceValue: "Boss 70% / 敵 72%",
+        frozen: "敵凍結中",
+        baseShield: "基地鋼壁シールド",
+        downed: "ダウン",
+        controls: "P一時停止  R再開幕  メニューでキー変更",
+        best: "最高得点",
+        unlocked: "解放済みステージ",
+        shieldSuffix: "シールド"
+      },
+      rules: {
+        title: "ルール",
+        back: "Esc / Backspace / Enter / H でメニューへ戻る",
+        blocks: {
+          quickStart: {
+            title: "基本操作",
+            lines: [
+              "メニューでモード、難度、開始ステージを選びます。",
+              "メニューからルール、キー設定、ランキングを開けます。",
+              "Enter で決定、1 / 2 ですぐ開始できます。",
+              "ゲーム中は P で一時停止、R で現在ステージをやり直します。"
+            ]
+          },
+          winLose: {
+            title: "勝敗条件",
+            lines: [
+              "そのステージの敵をすべて倒せばクリアです。",
+              "基地が壊れるか、全プレイヤーの残機が尽きると敗北です。",
+              "通常ステージを越えると全員に +1 残機が入ります。"
+            ]
+          },
+          player: {
+            title: "プレイヤー",
+            lines: [
+              "初期残機は 3、本プレイ中の残機上限はありません。",
+              "初期弾数は 20 で、報酬や補給でさらに増やせます。",
+              "弾切れ後は自動装填で、基本装填時間は 2.5 秒です。",
+              "現在の操作：P1 {p1}。",
+              "現在の操作：P2 {p2}。",
+              "ダッシュの基本クールダウンは 5 秒で、短時間の無敵があります。",
+              "2人モードではダウン後に短い救援受付時間が残ります。",
+              "1人モードでは追加補正と補給優遇があります。"
+            ]
+          },
+          terrain: {
+            title: "地形",
+            lines: [
+              "レンガ壁は破壊可能、鋼壁は弾を防ぎ、油樽は爆発します。",
+              "水は移動を阻止し、泥地はプレイヤーと敵の両方を減速させます。",
+              "草むらの敵は潜伏し、発砲・被弾・スキル起動時に短く姿を見せます。",
+              "紫の高耐久壁は初期 HP 5 で、何度も撃つ必要があります。",
+              "マップは 4 ステージごとに左右非対称で切り替わります。"
+            ]
+          },
+          enemy: {
+            title: "敵",
+            lines: [
+              "通常敵：基本ユニット、100点。",
+              "高速敵：移動が速く、150点。",
+              "重装敵：HP3、300点。",
+              "射手敵：射撃頻度が高く、220点。",
+              "第 5 関以降は、盾・速射・補給・潜伏の精鋭敵が混ざります。"
+            ]
+          },
+          boss: {
+            title: "Boss",
+            lines: [
+              "4 ステージごとに Boss ステージになり、Boss は 1 体だけ出現します。",
+              "Boss ステージでは 1〜2 体の雑魚が妨害に加わり、精鋭化することもあります。",
+              "赤盾統帥は周期的に盾を張り、追加 HP を持ちます。",
+              "緋焔砲王は十字と斜めの弾幕を交互に放ちます。",
+              "紫電突襲者は高速突進し、接触でもダメージを与えます。",
+              "Boss は予兆の後に行動し、半分以下で第二段階に入ります。",
+              "Boss 撃破後は通常報酬を 3 択から 1 回選び、その後で遺物を選びます。"
+            ]
+          },
+          reward: {
+            title: "道具と報酬",
+            lines: [
+              "シールドは基地を守り、爆弾は近くのプレイヤーへ吸い寄せられ、取得すると敵全体に 1 ダメージを与えます。",
+              "フリーズは敵を止め、スターは 6 秒の無敵を与えます。",
+              "ライフと弾薬道具は継戦に使い、弾薬補給は弾数上限も +1 します。",
+              "会心弾は敵弾を追加で 1 発打ち消せます。",
+              "オイル樽の爆発は周囲に 2 ダメージを与え、近くのオイル樽も連鎖して起爆します。",
+              "Boss 撃破後は通常報酬を 3 択から 1 回選び、その後で遺物報酬へ進みます。",
+              "遺物では連鎖補給、ダッシュ余光、戦地修築、草索敵などを獲得できます。"
+            ]
+          },
+          progress: {
+            title: "進行と難度",
+            lines: [
+              "最高得点、ランキング、解放ステージはローカル保存されます。",
+              "簡単では敵が少なく遅く、補給も出やすいです。",
+              "困難では敵が多く速く、射手比率と AI も強化されます。",
+              "ランキングはモードと難度で絞り込みできます。",
+              "会心率、ダッシュ状態、ダウン残り時間などは HUD に表示されます。"
+            ]
+          }
+        }
+      },
+      leaderboard: {
+        title: "ランキング",
+        help: "←→ モード  ↑↓ 難度  Enter / Esc / L 戻る",
+        best: "ローカル最高得点：{value}",
+        summary: "得点、ステージ、時間順に並びます。最大 30 件保存し、この画面では上位 10 件を表示します。",
+        filters: { mode: "モード：{value}", difficulty: "難度：{value}" },
+        empty: "この条件には記録がありません。別の条件を試してください。",
+        headers: ["順位", "得点", "関", "モード", "難度", "結果", "時間", "日時"]
+      },
+      pause: { title: "一時停止", items: ["再開", "この関を再開", "メニューへ"] },
+      stageClear: {
+        title: "第 {stage} 関クリア！",
+        reward: "全員 +1 残機",
+        next: "次のステージを準備中..."
+      },
+      reward: {
+        title: "Boss通常報酬",
+        prompt: "{keys} で選択",
+        life1: "全員 +1 残機",
+        life2: "最も少ないプレイヤーに +2 残機",
+        baseShield: "基地周囲のレンガ3枚に永続 +1 耐久",
+        ammoCapUp: "全員の弾数上限 +10",
+        bulletUp: "全員の弾速 +1",
+        doubleDamage: "全員 +10% で 2 ダメージ",
+        reloadFaster: "全員の装填時間 -0.4秒",
+        dashFaster: "全員のダッシュCD -0.6秒",
+        lifeTransfer: "高HP側 -1 残機、もう一方 +2~4"
+      },
+      relics: {
+        title: "Boss遺物報酬",
+        prompt: "{keys} で遺物を選択",
+        ammoEcho: "連鎖補給：会心命中時に短いCT付きで弾薬を 1 発戻す",
+        dashAfterglow: "ダッシュ余光：ダッシュ終了後に短いシールド時間を得る",
+        fieldRepair: "戦地修築：各ステージクリア後に基地レンガを 2 回追加補強",
+        grassTracker: "穿草索敵：草むらから現れた敵が少し長く見える"
+      },
+      result: {
+        gameOver: "ゲームオーバー",
+        baseDestroyed: "基地破壊",
+        allDown: "全滅"
+      },
+      boss: {
+        title: "BOSS",
+        none: "現在Bossなし",
+        hp: "HP {hp} / {max}",
+        mechanic: "機構：{value}",
+        phase: "段階：{value}",
+        phase1: "第一段階",
+        phase2: "第二段階",
+        warning: "予警：{value}",
+        intro: "BOSS 登場",
+        types: {
+          bossShield: "赤盾統帥",
+          bossBurst: "緋焔砲王",
+          bossDash: "紫電突襲者",
+          unknown: "Boss"
+        },
+        mechanics: {
+          bossShield: "短盾護体",
+          bossBurst: "十字・斜め交替",
+          bossDash: "突進衝突",
+          unknown: "-"
+        },
+        cast: {
+          idle: "待機",
+          shield: "シールド展開",
+          burstCross: "十字一斉射",
+          burstDiag: "斜め一斉射",
+          dash: "突進溜め",
+          warning: "スキル予警"
+        }
+      },
+      map: { names: ["西側廃墟", "斜線陣地", "河湾工事", "錯位要塞"] },
+      stageIntro: {
+        bossTitle: "第 {stage} 関 · Boss戦",
+        bossText: "{boss}  HP {hp}  雑魚 {minions}  マップ {map}",
+        normalTitle: "第 {stage} 関",
+        normalText: "敵 {enemyCount}  同時 {maxOnField}  マップ {map}"
+      },
+      effects: {
+        crit: "会心!",
+        dodge: "回避",
+        dash: "突進",
+        invulnDodge: "無敵回避",
+        shieldBlock: "盾で防御",
+        ram: "衝突!",
+        phase2: "第二段階!",
+        reloading: "装填中",
+        ammoEmpty: "弾切れ"
+      },
+      dash: { active: "ダッシュ中", ready: "準備完了" }
+    },
+    "ko": {
+      page: { documentTitle: "클래식 탱크 대전 · 밸런스판 v4.4" },
+      mode: { single: "싱글", duo: "2인", all: "전체 모드" },
+      difficulty: { all: "전체 난이도", easy: "쉬움", normal: "보통", hard: "어려움" },
+      menu: {
+        mode: "모드: {value}",
+        difficulty: "난이도: {value}",
+        stage: "시작 스테이지: {value}",
+        language: "언어: {value}",
+        rules: "규칙",
+        icons: "아이콘 안내",
+        settings: "키 설정",
+        leaderboard: "랭킹",
+        start: "게임 시작",
+        hint: "↑↓ 선택  ←→ 변경  Enter 확인  H 규칙  I 아이콘  K 키  L 랭킹",
+        quickStart: "1 키로 싱글 / 2 키로 2인 시작 가능",
+        controlSummary: "P1: {p1}  P2: {p2}"
+      },
+      settings: {
+        title: "키 설정",
+        restoreDefaults: "기본값 복원",
+        restoreHint: "Enter 로 전체 초기화",
+        rebinding: "P{player} {action} 변경 중. 아무 키나 눌러 저장, Esc 취소",
+        help: "↑↓ 선택  Enter 변경  R 초기화  Esc / K 돌아가기",
+        item: "항목",
+        current: "현재 키",
+        desc: "설명",
+        actions: {
+          up: "위 이동",
+          down: "아래 이동",
+          left: "왼쪽 이동",
+          right: "오른쪽 이동",
+          shoot: "발사",
+          dash: "대시"
+        },
+        actionDesc: "P{player} {action}"
+      },
+      hud: {
+        stage: "스테이지",
+        enemies: "적",
+        score: "점수",
+        difficulty: "난이도",
+        life: "목숨",
+        ammo: "탄약",
+        crit: "치명타",
+        dash: "대시",
+        reload: "재장전",
+        singleBalance: "싱글 보정 적용 중",
+        singleBalanceValue: "Boss 70% / 적 72%",
+        frozen: "적 빙결 중",
+        baseShield: "기지 강철 보호막",
+        downed: "다운",
+        controls: "P 일시정지  R 재시작  메뉴에서 키 변경",
+        best: "최고 점수",
+        unlocked: "해금 스테이지",
+        shieldSuffix: " 보호막"
+      },
+      rules: {
+        title: "규칙",
+        back: "Esc / Backspace / Enter / H 로 메뉴 복귀",
+        blocks: {
+          quickStart: {
+            title: "빠른 시작",
+            lines: [
+              "메뉴에서 모드, 난이도, 시작 스테이지를 고릅니다.",
+              "메뉴에서 규칙, 키 설정, 랭킹을 열 수 있습니다.",
+              "Enter 로 현재 항목을 확인하고 1 / 2 로 바로 시작할 수 있습니다.",
+              "게임 중 P 는 일시정지, R 은 현재 스테이지 재시작입니다."
+            ]
+          },
+          winLose: {
+            title: "승패 조건",
+            lines: [
+              "현재 스테이지의 적을 모두 파괴하면 클리어입니다.",
+              "기지가 파괴되거나 모든 플레이어의 목숨이 다하면 패배합니다.",
+              "일반 스테이지를 넘기면 모든 플레이어가 +1 목숨을 얻습니다."
+            ]
+          },
+          player: {
+            title: "플레이어 설정",
+            lines: [
+              "초기 목숨은 3이며 한 판 안에서 목숨 상한은 없습니다.",
+              "초기 탄약은 20발이며 보상과 보급으로 더 늘릴 수 있습니다.",
+              "탄약이 바닥나면 자동 재장전되며 기본 재장전 시간은 2.5초입니다.",
+              "현재 조작: P1 {p1}.",
+              "현재 조작: P2 {p2}.",
+              "기본 대시 쿨다운은 5초이며 잠깐의 무적이 있습니다.",
+              "2인 모드에서는 다운된 동료를 짧은 시간 안에 구조할 수 있습니다.",
+              "싱글 모드에서는 추가 밸런스 보정과 더 친절한 보급이 적용됩니다."
+            ]
+          },
+          terrain: {
+            title: "지형",
+            lines: [
+              "벽돌벽은 파괴 가능하고 강철벽은 탄환을 막으며, 기름통은 폭발 시 주변에 2 피해를 줍니다.",
+              "물은 이동을 막고, 진흙 지형은 플레이어와 적 모두를 느리게 만듭니다.",
+              "적은 풀숲에서 잠복하며, 발사·피격·기술 시작 순간에 잠깐 드러납니다.",
+              "보라색 고내구 벽은 시작 HP가 5라 여러 번 쏴야 합니다.",
+              "맵은 4 스테이지마다 비대칭 구조로 순환합니다."
+            ]
+          },
+          enemy: {
+            title: "적 설정",
+            lines: [
+              "기본 적: 기본 유닛, 100점.",
+              "고속 적: 더 빠르며 150점.",
+              "중장 적: HP 3, 300점.",
+              "사수 적: 더 자주 발사하며 220점.",
+              "5 스테이지 이후부터는 보호막, 속사, 보급, 잠복 정예 적이 섞여 나옵니다."
+            ]
+          },
+          boss: {
+            title: "Boss 설정",
+            lines: [
+              "4 스테이지마다 Boss 스테이지이며 Boss 는 1기만 등장합니다.",
+              "Boss 스테이지에서는 1~2기의 잡몹이 같이 나오며 정예화될 수도 있습니다.",
+              "적방패 통수는 주기적으로 방패를 켜고 추가 체력을 가집니다.",
+              "홍염 포왕은 십자/대각 탄막을 번갈아 발사합니다.",
+              "자전 돌격자는 고속 돌진하며 충돌 피해를 줍니다.",
+              "Boss 는 짧은 예고 후 기술을 쓰고, 반피 아래에서 2단계로 들어갑니다.",
+              "Boss 클리어 후에는 일반 보상 3지선다를 한 번 고른 뒤 유물 보상으로 이어집니다."
+            ]
+          },
+          reward: {
+            title: "아이템과 보상",
+            lines: [
+              "실드는 기지를 보호하고, 폭탄은 가까운 플레이어에게 끌려가며 획득 시 전장 전체 적에게 1 피해를 줍니다.",
+              "빙결은 적 행동을 멈추고, 별은 플레이어에게 6초 무적을 줍니다.",
+              "목숨과 탄약 아이템은 유지력에 쓰이며, 탄약 보급은 영구 탄약 상한도 +1 합니다.",
+              "치명타 탄환은 적 탄환을 1발 더 상쇄할 수 있습니다.",
+              "기름통 폭발은 주변 유닛에게 2 피해를 주며 다른 기름통도 연쇄 점화할 수 있습니다.",
+              "Boss 클리어 후에는 일반 보상 3지선다를 한 번 고른 뒤 유물 보상으로 이어집니다.",
+              "유물은 탄약 환급, 대시 여운, 전장 보수, 풀숲 추적 같은 장기 강화를 줍니다."
+            ]
+          },
+          progress: {
+            title: "진행과 난이도",
+            lines: [
+              "최고 점수, 랭킹, 해금 스테이지는 로컬에 저장됩니다.",
+              "쉬움은 적이 적고 느리며 보급이 더 잘 나옵니다.",
+              "어려움은 적이 많고 빠르며 사수 비율과 AI 도 강합니다.",
+              "랭킹은 모드와 난이도로 필터링할 수 있습니다.",
+              "치명타율, 대시 쿨다운, 다운 타이머 같은 핵심 상태는 HUD 에 표시됩니다."
+            ]
+          }
+        }
+      },
+      leaderboard: {
+        title: "랭킹",
+        help: "←→ 모드  ↑↓ 난이도  Enter / Esc / L 뒤로",
+        best: "로컬 최고 점수: {value}",
+        summary: "점수, 스테이지, 시간 순으로 정렬됩니다. 최대 30개를 보관하며 여기서는 상위 10개만 표시합니다.",
+        filters: { mode: "모드: {value}", difficulty: "난이도: {value}" },
+        empty: "현재 조건에는 기록이 없습니다. 다른 조건을 시도해 보세요.",
+        headers: ["순위", "점수", "관문", "모드", "난이도", "결과", "플레이", "시간"]
+      },
+      pause: { title: "일시정지", items: ["계속", "현재 스테이지 재시작", "메인 메뉴"] },
+      stageClear: {
+        title: "스테이지 {stage} 완료!",
+        reward: "모든 플레이어 +1 목숨",
+        next: "다음 스테이지 준비 중..."
+      },
+      reward: {
+        title: "Boss 일반 보상",
+        prompt: "{keys} 키로 선택",
+        life1: "전원 +1 목숨",
+        life2: "가장 적은 플레이어 +2 목숨",
+        baseShield: "기지 주변 벽돌 3칸에 영구 +1 내구",
+        ammoCapUp: "전원 최대 탄약 +10",
+        bulletUp: "전원 탄속 +1",
+        doubleDamage: "전원 10% 확률로 2 피해",
+        reloadFaster: "전원 재장전 시간 -0.4초",
+        dashFaster: "전원 대시 쿨다운 -0.6초",
+        lifeTransfer: "체력 높은 플레이어 -1, 다른 쪽 +2~4"
+      },
+      relics: {
+        title: "Boss 유물 보상",
+        prompt: "{keys} 키로 유물을 선택",
+        ammoEcho: "연쇄 보급: 치명타 적중 시 짧은 쿨과 함께 탄약 1발 환급",
+        dashAfterglow: "대시 여운: 대시 종료 후 짧은 보호막 시간을 획득",
+        fieldRepair: "전장 보수: 스테이지를 넘길 때마다 기지 벽돌을 2회 추가 보강",
+        grassTracker: "풀숲 추적: 풀숲에서 드러난 적이 조금 더 오래 보임"
+      },
+      result: {
+        gameOver: "게임 오버",
+        baseDestroyed: "기지 파괴",
+        allDown: "전원 전멸"
+      },
+      boss: {
+        title: "BOSS",
+        none: "현재 Boss 없음",
+        hp: "HP {hp} / {max}",
+        mechanic: "패턴: {value}",
+        phase: "단계: {value}",
+        phase1: "1단계",
+        phase2: "2단계",
+        warning: "예고: {value}",
+        intro: "BOSS 등장",
+        types: {
+          bossShield: "적방패 통수",
+          bossBurst: "홍염 포왕",
+          bossDash: "자전 돌격자",
+          unknown: "Boss"
+        },
+        mechanics: {
+          bossShield: "짧은 방패",
+          bossBurst: "십자·대각 교대",
+          bossDash: "돌진 충돌",
+          unknown: "-"
+        },
+        cast: {
+          idle: "대기",
+          shield: "방패 전개",
+          burstCross: "십자 탄막",
+          burstDiag: "대각 탄막",
+          dash: "돌진 준비",
+          warning: "기술 예고"
+        }
+      },
+      map: { names: ["서쪽 폐허", "대각 진지", "강굽이 공사", "엇갈린 요새"] },
+      stageIntro: {
+        bossTitle: "{stage} 스테이지 · Boss전",
+        bossText: "{boss}  HP {hp}  잡몹 {minions}  맵 {map}",
+        normalTitle: "{stage} 스테이지",
+        normalText: "적 {enemyCount}  동시 {maxOnField}  맵 {map}"
+      },
+      effects: {
+        crit: "치명타!",
+        dodge: "회피",
+        dash: "대시",
+        invulnDodge: "무적 회피",
+        shieldBlock: "보호막 방어",
+        ram: "충돌!",
+        phase2: "2단계!",
+        reloading: "재장전 중",
+        ammoEmpty: "탄약 없음"
+      },
+      dash: { active: "대시 중", ready: "준비 완료" }
+    }
+  };
+
+  const TILE = 32;
+  const ROWS = 26;
+  const COLS = 26;
+
+  const EMPTY = 0;
+  const BRICK = 1;
+  const STEEL = 2;
+  const WATER = 3;
+  const GRASS = 4;
+  const HARD = 5;
+  const OIL = 6;
+  const MUD = 7;
+
+  const DEFAULT_AMMO_CAP = 20;
+  const MAX_AMMO_CAP = 80;
+  const RELOAD_TIME = 2500;
+  const MIN_RELOAD_TIME = 1000;
+  const MAX_LIVES = Number.POSITIVE_INFINITY;
+  const PLAYER_DASH_COOLDOWN = 300;
+  const MIN_PLAYER_DASH_COOLDOWN = 120;
+  const PLAYER_DASH_FRAMES = 12;
+  const PLAYER_DASH_INVULN = 18;
+  const PLAYER_STAR_INVULN = 360;
+  const PLAYER_DASH_SPEED_MUL = 3.1;
+  const DOWNED_DURATION = 360;
+  const REVIVE_FRAMES = 72;
+  const REVIVE_INVULN = 120;
+  const REVIVE_AMMO_RATIO = 0.45;
+  const POWERUP_ATTRACT_RADIUS = 52;
+  const POWERUP_ATTRACT_SPEED = 5.2;
+  const BOMB_BURST_RADIUS = 120;
+  const BOMB_BURST_TILE_RADIUS = 4;
+  const BARREL_RADIUS = 56;
+  const BARREL_TILE_RADIUS = 1;
+  const MUD_SPEED_MUL = 0.64;
+  const ELITE_TYPES = ["shield", "rapid", "supply", "ambush"];
+  const RELIC_IDS = ["ammoEcho", "dashAfterglow", "fieldRepair", "grassTracker"];
+
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+
+  function fitCanvas() {
+    canvas.width = BASE_W;
+    canvas.height = BASE_H;
+    const scale = Math.min(window.innerWidth / BASE_W, window.innerHeight / BASE_H);
+    canvas.style.width = (BASE_W * scale) + "px";
+    canvas.style.height = (BASE_H * scale) + "px";
+  }
+  window.addEventListener("resize", fitCanvas);
+  fitCanvas();
+
+  const keys = Object.create(null);
+  let paused = false;
+  const ACTION_ORDER = ["up", "down", "left", "right", "shoot", "dash"];
+  const DIRECTION_ACTIONS = ["up", "down", "left", "right"];
+  function normalizeLanguage(value) {
+    return LANGUAGE_CODES.includes(value) ? value : "zh-CN";
+  }
+
+  function getStoredLanguage() {
+    try {
+      return normalizeLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY));
+    } catch {
+      return "zh-CN";
+    }
+  }
+
+  function getCurrentLanguage() {
+    if (typeof state !== "undefined" && state && state.language) return normalizeLanguage(state.language);
+    return getStoredLanguage();
+  }
+
+  function getTranslationValue(key, lang = getCurrentLanguage()) {
+    const keys = String(key).split(".");
+    const tryRead = (source) => {
+      let current = source;
+      for (const part of keys) {
+        if (!current || typeof current !== "object" || !(part in current)) return undefined;
+        current = current[part];
+      }
+      return current;
+    };
+    const currentValue = tryRead(I18N[normalizeLanguage(lang)]);
+    if (currentValue !== undefined) return currentValue;
+    return tryRead(I18N["zh-CN"]);
+  }
+
+  function t(key, vars = {}) {
+    const value = getTranslationValue(key);
+    if (typeof value !== "string") return "";
+    return value.replace(/\{(\w+)\}/g, (_, name) => vars[name] ?? "");
+  }
+
+  function listT(key) {
+    const value = getTranslationValue(key);
+    return Array.isArray(value) ? value : [];
+  }
+
+  function getLanguageDisplayName(code) {
+    return LANGUAGE_META[normalizeLanguage(code)]?.name || LANGUAGE_META["zh-CN"].name;
+  }
+  function getGameTitle() {
+    return {
+      "zh-CN": "经典坦克大战",
+      "en": "Classic Tank Battle",
+      "ja": "クラシックタンク大戦",
+      "ko": "클래식 탱크 대전"
+    }[getCurrentLanguage()] || "经典坦克大战";
+  }
+
+  function getLanguageShortName(code) {
+    return LANGUAGE_META[normalizeLanguage(code)]?.short || LANGUAGE_META["zh-CN"].short;
+  }
+
+  function getLocaleCode() {
+    return LANGUAGE_META[getCurrentLanguage()]?.locale || "zh-CN";
+  }
+
+  function applyLanguage(code) {
+    const next = normalizeLanguage(code);
+    if (typeof state !== "undefined" && state) state.language = next;
+    try {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, next);
+    } catch {}
+    document.documentElement.lang = next;
+    document.title = t("page.documentTitle");
+  }
+
+  function cycleLanguage(step) {
+    const current = getCurrentLanguage();
+    const index = Math.max(0, LANGUAGE_CODES.indexOf(current));
+    const next = LANGUAGE_CODES[(index + step + LANGUAGE_CODES.length) % LANGUAGE_CODES.length];
+    applyLanguage(next);
+    if (typeof saveProgress === "function") saveProgress();
+  }
+
+  function getIconGuideUrl() {
+    const path = window.location.pathname.replace(/\\/g, "/");
+    const rel = (path.includes("/正式发布版/") || path.includes("/_github_sync/"))
+      ? "./icons/index.html"
+      : "./正式发布版/icons/index.html";
+    return new URL(rel, window.location.href).href;
+  }
+
+  function getSettingsActionLabel(action) {
+    return t(`settings.actions.${action}`);
+  }
+  const movementState = {
+    1: { down: { up: false, down: false, left: false, right: false }, held: [] },
+    2: { down: { up: false, down: false, left: false, right: false }, held: [] }
+  };
+
+  function normalizeBindingInput(e) {
+    const key = String(e.key || "");
+    const code = String(e.code || "");
+    let label = key;
+    if (label === " ") label = "Space";
+    else if (label === "Escape") label = "Esc";
+    else if (label === "Control") label = "Ctrl";
+    else if (label === "ArrowUp") label = "↑";
+    else if (label === "ArrowDown") label = "↓";
+    else if (label === "ArrowLeft") label = "←";
+    else if (label === "ArrowRight") label = "→";
+    else if (label.length === 1) label = label.toUpperCase();
+    else if (!label && code) label = code.replace(/^Key/, "").replace(/^Digit/, "");
+    return { key, code, label: label || code || "?" };
+  }
+
+  function createBinding(key, code, label = null) {
+    return normalizeStoredBinding({ key, code, label });
+  }
+
+  function createDefaultKeyBindings() {
+    return {
+      1: {
+        up: createBinding("w", "KeyW", "W"),
+        down: createBinding("s", "KeyS", "S"),
+        left: createBinding("a", "KeyA", "A"),
+        right: createBinding("d", "KeyD", "D"),
+        shoot: createBinding(" ", "Space", "Space"),
+        dash: createBinding("Shift", "ShiftLeft", "Shift")
+      },
+      2: {
+        up: createBinding("8", "Digit8", "8"),
+        down: createBinding("5", "Digit5", "5"),
+        left: createBinding("4", "Digit4", "4"),
+        right: createBinding("6", "Digit6", "6"),
+        shoot: createBinding("9", "Digit9", "9"),
+        dash: createBinding("3", "Digit3", "3")
+      }
+    };
+  }
+
+  function cloneKeyBindings(bindings) {
+    const copy = {};
+    for (const controlType of [1, 2]) {
+      copy[controlType] = {};
+      for (const action of ACTION_ORDER) {
+        copy[controlType][action] = { ...bindings[controlType][action] };
+      }
+    }
+    return copy;
+  }
+
+  function normalizeStoredBinding(raw, fallback = null) {
+    if (!raw || (raw.key == null && raw.code == null && raw.label == null)) {
+      return fallback ? { ...fallback } : null;
+    }
+    const binding = {
+      key: String(raw.key ?? ""),
+      code: String(raw.code ?? ""),
+      label: String(raw.label ?? "")
+    };
+    if (!binding.label) {
+      binding.label = binding.key === " " ? "Space" : (binding.key || binding.code || "?");
+    }
+    return binding;
+  }
+
+  function normalizeKeyBindings(raw) {
+    const defaults = createDefaultKeyBindings();
+    const result = cloneKeyBindings(defaults);
+    if (!raw || typeof raw !== "object") return result;
+    for (const controlType of [1, 2]) {
+      const group = raw[controlType] || raw[String(controlType)] || {};
+      for (const action of ACTION_ORDER) {
+        result[controlType][action] = normalizeStoredBinding(group[action], defaults[controlType][action]);
+      }
+    }
+    return result;
+  }
+
+  function bindingMatchesEvent(binding, e) {
+    if (!binding) return false;
+    const key = String(e.key || "");
+    const code = String(e.code || "");
+    return (binding.code && binding.code === code) || (binding.key && binding.key === key);
+  }
+
+  function getActionBinding(controlType, action) {
+    return state.keyBindings?.[controlType]?.[action] || null;
+  }
+
+  function getBindingLabel(controlType, action) {
+    return getActionBinding(controlType, action)?.label || "-";
+  }
+
+  function getControlSummary(controlType) {
+    const moveSummary = DIRECTION_ACTIONS.map(action => getBindingLabel(controlType, action)).join("/");
+    return `${moveSummary} + ${getBindingLabel(controlType, "shoot")} + ${getBindingLabel(controlType, "dash")}`;
+  }
+
+  function matchesAction(controlType, action, e) {
+    return bindingMatchesEvent(getActionBinding(controlType, action), e);
+  }
+
+  function resetMovementState() {
+    for (const controlType of [1, 2]) {
+      for (const dir of DIRECTION_ACTIONS) movementState[controlType].down[dir] = false;
+      movementState[controlType].held.length = 0;
+    }
+  }
+
+  function clearInputState() {
+    for (const key of Object.keys(keys)) delete keys[key];
+    resetMovementState();
+  }
+
+  function getDirectionalBinding(e) {
+    for (const controlType of [1, 2]) {
+      for (const dir of DIRECTION_ACTIONS) {
+        if (bindingMatchesEvent(getActionBinding(controlType, dir), e)) {
+          return { controlType, dir };
+        }
+      }
+    }
+    return null;
+  }
+
+  function getActiveHeldDirection(controlType) {
+    const slot = movementState[controlType];
+    for (let i = slot.held.length - 1; i >= 0; i--) {
+      const dir = slot.held[i];
+      if (slot.down[dir]) return dir;
+    }
+    return "";
+  }
+
+  function applyDirectionalKeydown(e) {
+    const binding = getDirectionalBinding(e);
+    if (!binding) return false;
+    const slot = movementState[binding.controlType];
+    if (!slot.down[binding.dir]) {
+      slot.down[binding.dir] = true;
+      slot.held = slot.held.filter(dir => dir !== binding.dir);
+      slot.held.push(binding.dir);
+    }
+    return true;
+  }
+
+  function applyDirectionalKeyup(e) {
+    const binding = getDirectionalBinding(e);
+    if (!binding) return false;
+    const slot = movementState[binding.controlType];
+    slot.down[binding.dir] = false;
+    slot.held = slot.held.filter(dir => dir !== binding.dir);
+    return true;
+  }
+
+  function findBindingOwnerByEvent(e, exclude = null) {
+    for (const controlType of [1, 2]) {
+      for (const action of ACTION_ORDER) {
+        if (exclude && exclude.controlType === controlType && exclude.action === action) continue;
+        if (bindingMatchesEvent(getActionBinding(controlType, action), e)) {
+          return { controlType, action };
+        }
+      }
+    }
+    return null;
+  }
+
+  function applyBindingChange(controlType, action, e) {
+    const nextBinding = normalizeBindingInput(e);
+    const previous = { ...state.keyBindings[controlType][action] };
+    const conflict = findBindingOwnerByEvent(e, { controlType, action });
+    state.keyBindings[controlType][action] = nextBinding;
+    if (conflict) state.keyBindings[conflict.controlType][conflict.action] = previous;
+    saveProgress();
+    clearInputState();
+  }
+
+  function resetKeyBindingsToDefault() {
+    state.keyBindings = createDefaultKeyBindings();
+    state.rebindingAction = null;
+    saveProgress();
+    clearInputState();
+  }
+
+  const COLORS = {
+    brick: "#b45309",
+    brickDark: "#7c2d12",
+    steel: "#94a3b8",
+    water: "#2563eb",
+    grass: "#16a34a",
+    hard: "#7c3aed",
+    p1: "#facc15",
+    p2: "#60a5fa",
+    enemy: "#ef4444",
+    fast: "#fb923c",
+    heavy: "#a855f7",
+    shooter: "#22c55e",
+    bossShield: "#b91c1c",
+    bossBurst: "#db2777",
+    bossDash: "#7c3aed",
+    bullet: "#ffffff",
+    enemyBullet: "#ff2d2d",
+    crit: "#ff66c4",
+    heal: "#22c55e",
+    shield: "#67e8f9",
+    eagle: "#f59e0b",
+    eagleDead: "#7f1d1d",
+    panel: "rgba(255,255,255,0.06)"
+  };
+
+  function clamp(v, a, b) {
+    return Math.max(a, Math.min(b, v));
+  }
+  function rand(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+  function randint(min, max) {
+    return Math.floor(rand(min, max + 1));
+  }
+  function pick(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+  function rectsOverlap(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x &&
+           a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+  function makeBucketKey(x, y) {
+    return `${x},${y}`;
+  }
+
+  const state = {
+    frame: 0,
+    screen: "menu", // menu / rules / settings / leaderboard / playing / reward / stageclear / gameover
+    mode: 1,
+    difficulty: "normal",
+    stage: 1,
+    score: 0,
+    bestScore: 0,
+    unlockedStage: 1,
+
+    enemyToSpawn: 0,
+    enemySpawnCooldown: 0,
+    stageClearTimer: 0,
+    freezeTimer: 0,
+    baseShieldTimer: 0,
+    baseShieldReinforcePending: 0,
+    powerupCooldown: 0,
+    bossIntroTimer: 0,
+    bossIntroText: "",
+    stageIntroTimer: 0,
+    stageIntroTitle: "",
+    stageIntroText: "",
+    shake: 0,
+
+    rewardChoices: [],
+    relicChoices: [],
+    pendingStageShield: 0,
+    pendingExtraDrops: 0,
+    pendingBaseBrickArmor: 0,
+    ownedRelics: [],
+    downedPlayers: [],
+    menuSelection: 0,
+    menuMode: 1,
+    menuDifficulty: 1,
+    menuStage: 1,
+    rulesPage: 0,
+    settingsSelection: 0,
+    rebindingAction: null,
+    pausedSelection: 0,
+    gameOverText: "",
+    leaderboard: [],
+    runRecorded: false,
+    leaderboardModeFilter: 0,
+    leaderboardDifficultyFilter: 0,
+    supportDryStages: 0,
+    stageHadSupportDrop: false,
+    pendingBossSupply: "",
+    relicOfferPending: false,
+    runStartTime: 0,
+    keyBindings: createDefaultKeyBindings(),
+    language: getStoredLanguage()
+  };
+
+  const SAVE_KEY = "tank_fixed_final_save_v1";
+  function loadSave() {
+    try {
+      return JSON.parse(localStorage.getItem(SAVE_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  }
+  function saveProgress() {
+    try {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, state.language);
+    } catch {}
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      bestScore: state.bestScore,
+      unlockedStage: state.unlockedStage,
+      leaderboard: state.leaderboard,
+      keyBindings: state.keyBindings,
+      language: state.language
+    }));
+  }
+  function formatDuration(totalSeconds) {
+    const sec = Math.max(0, Math.floor(totalSeconds || 0));
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
+  function normalizeModeCode(raw) {
+    if (raw === 2 || raw === "2" || raw === "duo" || raw === "双人" || raw === "2人") return 2;
+    return 1;
+  }
+  function normalizeDifficultyCode(raw) {
+    if (raw === "easy" || raw === "简单" || raw === "쉬움") return "easy";
+    if (raw === "hard" || raw === "困难" || raw === "어려움") return "hard";
+    return "normal";
+  }
+  function normalizeResultKey(raw) {
+    if (raw === "result.baseDestroyed" || raw === "基地被摧毁" || raw === "기지 파괴") return "result.baseDestroyed";
+    if (raw === "result.allDown" || raw === "玩家全灭" || raw === "전원 전멸") return "result.allDown";
+    return "result.gameOver";
+  }
+  function formatHistoryTime(timestamp) {
+    if (!timestamp) return "-";
+    try {
+      return new Date(timestamp).toLocaleString(getLocaleCode(), { hour12: false });
+    } catch {
+      return new Date(timestamp).toLocaleString("zh-CN", { hour12: false });
+    }
+  }
+  function getDifficultyLabelByIndex(index) {
+    return t(`difficulty.${["easy", "normal", "hard"][index] || "normal"}`);
+  }
+  function getModeName(modeValue) {
+    return modeValue === 2 ? t("mode.duo") : t("mode.single");
+  }
+  function getCurrentModeValue() {
+    return state.mode || state.menuMode || 1;
+  }
+  function getModeBalanceTuning() {
+    if (getCurrentModeValue() === 1) {
+      return {
+        enemyCountMul: 0.72,
+        maxOnFieldBonus: -1,
+        spawnIntervalMul: 1.08,
+        bossHpMul: 0.7,
+        powerupChanceBonus: 0.1,
+        powerupCooldownMul: 0.86,
+        powerupInitialCooldownMul: 0.82
+      };
+    }
+    return {
+      enemyCountMul: 1,
+      maxOnFieldBonus: 0,
+      spawnIntervalMul: 1,
+      bossHpMul: 1,
+      powerupChanceBonus: 0,
+      powerupCooldownMul: 1,
+      powerupInitialCooldownMul: 1
+    };
+  }
+  function addLives(player, amount) {
+    if (!player) return;
+    player.lives += amount;
+  }
+  function getRewardCardCount() {
+    return 3;
+  }
+  function getEliteSpawnChance(stage) {
+    if (stage < 5) return 0;
+    return clamp(0.08 + Math.floor((stage - 5) / 4) * 0.06, 0.08, 0.2);
+  }
+  function pickEliteType() {
+    return pick(ELITE_TYPES);
+  }
+  function isOwnedRelic(id) {
+    return state.ownedRelics.includes(id);
+  }
+  function getGrassRevealBonusFrames() {
+    return isOwnedRelic("grassTracker") ? 14 : 0;
+  }
+  function getRelicPool() {
+    return [
+      {
+        id: "ammoEcho",
+        text: t("relics.ammoEcho"),
+        apply() {}
+      },
+      {
+        id: "dashAfterglow",
+        text: t("relics.dashAfterglow"),
+        apply() {}
+      },
+      {
+        id: "fieldRepair",
+        text: t("relics.fieldRepair"),
+        apply() {}
+      },
+      {
+        id: "grassTracker",
+        text: t("relics.grassTracker"),
+        apply() {}
+      }
+    ];
+  }
+  function normalizeLeaderboard(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .filter(item => item && Number.isFinite(Number(item.score)))
+      .map(item => ({
+        score: Number(item.score) || 0,
+        stage: Number(item.stage) || 1,
+        difficultyCode: normalizeDifficultyCode(item.difficultyCode ?? item.difficulty),
+        modeCode: normalizeModeCode(item.modeCode ?? item.mode),
+        resultKey: normalizeResultKey(item.resultKey ?? item.result),
+        time: Number(item.time) || 0,
+        durationSec: Number(item.durationSec) || 0
+      }))
+      .sort((a, b) => b.score - a.score || b.stage - a.stage || b.time - a.time)
+      .slice(0, 30);
+  }
+  function getLeaderboardModeFilterLabel() {
+    return state.leaderboardModeFilter === 1 ? t("mode.single") : state.leaderboardModeFilter === 2 ? t("mode.duo") : t("mode.all");
+  }
+  function getLeaderboardDifficultyFilterLabel() {
+    if (state.leaderboardDifficultyFilter === 1) return t("difficulty.easy");
+    if (state.leaderboardDifficultyFilter === 2) return t("difficulty.normal");
+    if (state.leaderboardDifficultyFilter === 3) return t("difficulty.hard");
+    return t("difficulty.all");
+  }
+  function getFilteredLeaderboard() {
+    return normalizeLeaderboard(state.leaderboard)
+      .filter(item => state.leaderboardModeFilter === 0 || item.modeCode === state.leaderboardModeFilter)
+      .filter(item => state.leaderboardDifficultyFilter === 0 || item.difficultyCode === ["easy", "normal", "hard"][state.leaderboardDifficultyFilter - 1])
+      .slice(0, 10);
+  }
+  function recordRunHistory(result) {
+    if (state.runRecorded) return;
+    const now = new Date();
+    const durationSec = state.runStartTime ? Math.floor((Date.now() - state.runStartTime) / 1000) : 0;
+    state.leaderboard = normalizeLeaderboard([
+      {
+        score: state.score,
+        stage: state.stage,
+        difficultyCode: getDifficultyMode(),
+        modeCode: state.mode,
+        resultKey: result,
+        time: now.getTime(),
+        durationSec
+      },
+      ...state.leaderboard
+    ]);
+    state.runRecorded = true;
+  }
+  {
+    const s = loadSave();
+    state.bestScore = s.bestScore || 0;
+    state.unlockedStage = s.unlockedStage || 1;
+    state.leaderboard = normalizeLeaderboard(s.leaderboard);
+    state.keyBindings = normalizeKeyBindings(s.keyBindings);
+    state.language = normalizeLanguage(s.language || getStoredLanguage());
+    applyLanguage(state.language);
+  }
+
+  const map = [];
+  const hardWallHP = [];
+  const brickArmorHP = [];
+  const baseBrickMaxHP = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+  const players = [];
+  const enemies = [];
+  const bullets = [];
+  const powerups = [];
+  const spawnEffects = [];
+  const explosions = [];
+  const floatTexts = [];
+  const hitEffects = [];
+  const baseShieldBackup = [];
+  const BULLET_CLASH_BUCKET = 32;
+
+  const eagle = {
+    row: ROWS - 2,
+    col: Math.floor(COLS / 2),
+    alive: true
+  };
+
+  function resetMap() {
+    for (let r = 0; r < ROWS; r++) {
+      map[r] = [];
+      hardWallHP[r] = [];
+      brickArmorHP[r] = [];
+      for (let c = 0; c < COLS; c++) {
+        map[r][c] = EMPTY;
+        hardWallHP[r][c] = 0;
+        brickArmorHP[r][c] = 0;
+      }
+    }
+  }
+
+  function resetBaseBrickMaxHP() {
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        baseBrickMaxHP[r][c] = 0;
+      }
+    }
+  }
+
+  function setTile(r, c, v) {
+    if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+      map[r][c] = v;
+      if (v !== BRICK) brickArmorHP[r][c] = 0;
+    }
+  }
+
+  function setHardWall(r, c, hp = 5) {
+    if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+      map[r][c] = HARD;
+      hardWallHP[r][c] = hp;
+      brickArmorHP[r][c] = 0;
+    }
+  }
+
+  function fillTiles(r1, c1, r2, c2, tile) {
+    const sr = Math.max(1, Math.min(r1, r2));
+    const er = Math.min(ROWS - 2, Math.max(r1, r2));
+    const sc = Math.max(1, Math.min(c1, c2));
+    const ec = Math.min(COLS - 2, Math.max(c1, c2));
+    for (let r = sr; r <= er; r++) {
+      for (let c = sc; c <= ec; c++) setTile(r, c, tile);
+    }
+  }
+
+  function fillHardTiles(r1, c1, r2, c2, hp = 5) {
+    const sr = Math.max(1, Math.min(r1, r2));
+    const er = Math.min(ROWS - 2, Math.max(r1, r2));
+    const sc = Math.max(1, Math.min(c1, c2));
+    const ec = Math.min(COLS - 2, Math.max(c1, c2));
+    for (let r = sr; r <= er; r++) {
+      for (let c = sc; c <= ec; c++) setHardWall(r, c, hp);
+    }
+  }
+
+  function tankBlocked(tile) {
+    return tile === BRICK || tile === STEEL || tile === WATER || tile === HARD || tile === OIL;
+  }
+
+  function dropBlocked(tile) {
+    return tile === WATER || tile === STEEL || tile === HARD || tile === OIL || tile === MUD;
+  }
+  function isSlowTile(tile) {
+    return tile === MUD;
+  }
+
+  function getRectTileBounds(rect) {
+    return {
+      sc: clamp(Math.floor(rect.x / TILE), 0, COLS - 1),
+      ec: clamp(Math.floor((rect.x + rect.w - 1) / TILE), 0, COLS - 1),
+      sr: clamp(Math.floor(rect.y / TILE), 0, ROWS - 1),
+      er: clamp(Math.floor((rect.y + rect.h - 1) / TILE), 0, ROWS - 1)
+    };
+  }
+
+  function rectTouchesTile(rect, tileType) {
+    const { sc, ec, sr, er } = getRectTileBounds(rect);
+    for (let r = sr; r <= er; r++) {
+      for (let c = sc; c <= ec; c++) {
+        if (map[r]?.[c] === tileType) return true;
+      }
+    }
+    return false;
+  }
+  function getRectCenter(rect) {
+    return { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 };
+  }
+  function getDistanceSq(ax, ay, bx, by) {
+    const dx = ax - bx;
+    const dy = ay - by;
+    return dx * dx + dy * dy;
+  }
+  function getTileCenter(r, c) {
+    return { x: c * TILE + TILE / 2, y: r * TILE + TILE / 2 };
+  }
+  function getTerrainSpeedMul(rect) {
+    const { sc, ec, sr, er } = getRectTileBounds(rect);
+    for (let r = sr; r <= er; r++) {
+      for (let c = sc; c <= ec; c++) {
+        if (isSlowTile(map[r]?.[c])) return MUD_SPEED_MUL;
+      }
+    }
+    return 1;
+  }
+
+  function getBaseDefenseCells() {
+    const r = eagle.row;
+    const c = eagle.col;
+    return [
+      [r - 1, c - 1], [r - 1, c], [r - 1, c + 1],
+      [r, c - 1], [r, c + 1]
+    ];
+  }
+
+  function isBaseDefenseCell(r, c) {
+    return getBaseDefenseCells().some(([rr, cc]) => rr === r && cc === c);
+  }
+
+  function getBaseBrickMaxValue(r, c) {
+    return Math.max(1, baseBrickMaxHP[r]?.[c] || 1);
+  }
+
+  function protectBaseWithBrick() {
+    for (const [rr, cc] of getBaseDefenseCells()) {
+      setTile(rr, cc, BRICK);
+      brickArmorHP[rr][cc] = getBaseBrickMaxValue(rr, cc);
+    }
+  }
+
+  function protectBaseWithSteel() {
+    if (state.baseShieldTimer <= 0) {
+      baseShieldBackup.length = 0;
+      for (const [rr, cc] of getBaseDefenseCells()) {
+        baseShieldBackup.push([rr, cc, map[rr][cc], brickArmorHP[rr][cc]]);
+        setTile(rr, cc, STEEL);
+      }
+    }
+    state.baseShieldTimer = 900;
+    state.baseShieldReinforcePending = Math.max(state.baseShieldReinforcePending, 1);
+  }
+
+  function restoreBaseShield() {
+    for (const [rr, cc, prev, armor] of baseShieldBackup) {
+      const restoreTile = prev === EMPTY ? BRICK : prev;
+      setTile(rr, cc, restoreTile);
+      if (map[rr][cc] === BRICK) {
+        brickArmorHP[rr][cc] = prev === EMPTY ? getBaseBrickMaxValue(rr, cc) : Math.max(1, armor || 1);
+      }
+    }
+    baseShieldBackup.length = 0;
+    while (state.baseShieldReinforcePending > 0) {
+      reinforceRandomBaseBrick();
+      state.baseShieldReinforcePending--;
+    }
+  }
+
+  function reinforceRandomBaseBrick() {
+    const target = pick(getBaseDefenseCells());
+    if (!target) return;
+    const [rr, cc] = target;
+    baseBrickMaxHP[rr][cc] = getBaseBrickMaxValue(rr, cc) + 1;
+    if (map[rr][cc] !== BRICK) setTile(rr, cc, BRICK);
+    brickArmorHP[rr][cc] = getBaseBrickMaxValue(rr, cc);
+  }
+
+  function applyPendingBaseBrickArmor() {
+    while (state.pendingBaseBrickArmor > 0) {
+      reinforceRandomBaseBrick();
+      state.pendingBaseBrickArmor--;
+    }
+  }
+
+  function getMapLayoutIndex(stage) {
+    return Math.floor((Math.max(1, stage) - 1) / 4) % 4;
+  }
+
+  function getMapLayoutName(stage) {
+    return listT("map.names")[getMapLayoutIndex(stage)] || listT("map.names")[0] || "-";
+  }
+
+  function clearRectTiles(r1, c1, r2, c2) {
+    for (let r = Math.max(1, Math.min(r1, r2)); r <= Math.min(ROWS - 2, Math.max(r1, r2)); r++) {
+      for (let c = Math.max(1, Math.min(c1, c2)); c <= Math.min(COLS - 2, Math.max(c1, c2)); c++) {
+        setTile(r, c, EMPTY);
+      }
+    }
+  }
+
+  function clearSpawnLanes() {
+    clearRectTiles(1, 1, 3, 4);
+    clearRectTiles(1, 11, 3, 14);
+    clearRectTiles(1, 21, 3, 24);
+    clearRectTiles(20, 8, 22, 11);
+    clearRectTiles(20, 14, 22, 17);
+  }
+
+  function clearCentralArena() {
+    clearRectTiles(12, 12, 14, 14);
+  }
+  function applyExplosionToBrick(r, c) {
+    if (map[r]?.[c] !== BRICK) return;
+    if (isBaseDefenseCell(r, c)) {
+      const currentHp = Math.max(1, brickArmorHP[r][c] || 1);
+      if (currentHp > 1) brickArmorHP[r][c] = currentHp - 1;
+      else {
+        map[r][c] = EMPTY;
+        brickArmorHP[r][c] = 0;
+      }
+      return;
+    }
+    map[r][c] = EMPTY;
+  }
+  function handleEnemyDefeat(enemy) {
+    if (!enemy || enemy._defeatHandled) return;
+    enemy._defeatHandled = true;
+    state.score += enemy.scoreValue;
+    state.bestScore = Math.max(state.bestScore, state.score);
+    if (enemy.eliteType === "supply") {
+      spawnPowerup(pick(["ammo", "ammo", "life", "shield"]));
+      return;
+    }
+    if (Math.random() < 0.15 && !getStageConfig(state.stage).isBossStage) spawnPowerup();
+  }
+  function triggerBarrelExplosion(r, c) {
+    if (map[r]?.[c] !== OIL) return;
+    map[r][c] = EMPTY;
+    const cx = c * TILE + TILE / 2;
+    const cy = r * TILE + TILE / 2;
+    explosions.push(new Explosion(cx, cy, true));
+    state.shake = Math.max(state.shake, 6);
+
+    for (let rr = Math.max(1, r - BARREL_TILE_RADIUS); rr <= Math.min(ROWS - 2, r + BARREL_TILE_RADIUS); rr++) {
+      for (let cc = Math.max(1, c - BARREL_TILE_RADIUS); cc <= Math.min(COLS - 2, c + BARREL_TILE_RADIUS); cc++) {
+        if (rr === r && cc === c) continue;
+        if (map[rr][cc] === OIL) triggerBarrelExplosion(rr, cc);
+        else if (map[rr][cc] === BRICK) applyExplosionToBrick(rr, cc);
+      }
+    }
+
+    const radiusSq = BARREL_RADIUS * BARREL_RADIUS;
+    for (const target of [...players, ...enemies]) {
+      if (!target.alive) continue;
+      const center = getRectCenter(target.getRect());
+      if (getDistanceSq(center.x, center.y, cx, cy) > radiusSq) continue;
+      const dead = target.takeHit(2);
+      hitEffects.push(new HitEffect(center.x - 4, center.y - 4, target.isPlayer ? COLORS.crit : COLORS.enemyBullet, 10, 12));
+      if (!dead) continue;
+      explosions.push(new Explosion(center.x, center.y, target.enemyType?.startsWith("boss")));
+      if (target.isPlayer) onPlayerDead(target);
+      else handleEnemyDefeat(target);
+    }
+  }
+  function triggerBombBurst() {
+    const cx = GAME_W / 2;
+    const cy = GAME_H / 2;
+    explosions.push(new Explosion(cx, cy, true));
+    state.shake = Math.max(state.shake, 8);
+    hitEffects.push(new HitEffect(cx, cy, "#fb923c", 16, 20));
+    floatTexts.push(new FloatText(cx - 22, cy - 18, "BOMB", "#fb923c", 28));
+
+    for (const enemy of enemies) {
+      if (!enemy.alive) continue;
+      const center = getRectCenter(enemy.getRect());
+      const dead = enemy.takeHit(1);
+      hitEffects.push(new HitEffect(center.x - 5, center.y - 5, dead ? COLORS.crit : "#fb923c", dead ? 14 : 10, dead ? 16 : 12));
+      floatTexts.push(new FloatText(center.x - 10, center.y - 18, "-1", dead ? COLORS.crit : "#fb923c", 24));
+      if (!dead) continue;
+      explosions.push(new Explosion(center.x, center.y, enemy.enemyType?.startsWith("boss")));
+      state.shake = Math.max(state.shake, enemy.enemyType?.startsWith("boss") ? 11 : 5);
+      handleEnemyDefeat(enemy);
+    }
+  }
+  function placeMapHazards(layout) {
+    const placements = [
+      { oil: [[7, 8], [15, 14]], mud: [[5, 18], [16, 6], [18, 17]] },
+      { oil: [[6, 12], [14, 15]], mud: [[8, 18], [15, 5], [18, 12]] },
+      { oil: [[8, 16], [16, 10]], mud: [[5, 5], [12, 18], [18, 7]] },
+      { oil: [[7, 20], [16, 9]], mud: [[5, 12], [14, 5], [18, 18]] }
+    ][layout] || { oil: [], mud: [] };
+
+    for (const [r, c] of placements.oil) setTile(r, c, OIL);
+    for (const [r, c] of placements.mud) setTile(r, c, MUD);
+  }
+
+  function buildMap() {
+    resetMap();
+
+    for (let c = 0; c < COLS; c++) {
+      setTile(0, c, STEEL);
+      setTile(ROWS - 1, c, STEEL);
+    }
+    for (let r = 0; r < ROWS; r++) {
+      setTile(r, 0, STEEL);
+      setTile(r, COLS - 1, STEEL);
+    }
+
+    const layout = getMapLayoutIndex(state.stage);
+    if (layout === 0) {
+      fillTiles(4, 3, 4, 8, BRICK);
+      fillTiles(7, 5, 10, 5, BRICK);
+      fillTiles(9, 2, 9, 6, BRICK);
+      fillTiles(5, 16, 8, 18, WATER);
+      fillTiles(11, 11, 11, 20, BRICK);
+      fillTiles(14, 3, 18, 4, BRICK);
+      fillTiles(15, 9, 18, 11, GRASS);
+      fillTiles(16, 17, 19, 18, GRASS);
+      setTile(6, 9, STEEL);
+      setTile(8, 20, STEEL);
+      setTile(13, 15, STEEL);
+    } else if (layout === 1) {
+      fillTiles(4, 7, 4, 13, BRICK);
+      fillTiles(6, 5, 7, 5, STEEL);
+      fillTiles(8, 9, 8, 15, BRICK);
+      fillTiles(10, 13, 10, 20, BRICK);
+      fillTiles(6, 18, 9, 19, GRASS);
+      fillTiles(13, 4, 16, 6, WATER);
+      fillTiles(15, 10, 18, 10, BRICK);
+      fillTiles(17, 15, 17, 22, BRICK);
+      setTile(12, 8, STEEL);
+      setTile(14, 18, STEEL);
+    } else if (layout === 2) {
+      fillTiles(4, 4, 6, 5, WATER);
+      fillTiles(5, 8, 5, 14, BRICK);
+      fillTiles(7, 17, 10, 18, BRICK);
+      fillTiles(9, 3, 12, 4, GRASS);
+      fillTiles(11, 9, 13, 16, WATER);
+      fillTiles(15, 6, 15, 13, BRICK);
+      fillTiles(18, 15, 19, 22, BRICK);
+      fillTiles(14, 19, 17, 20, GRASS);
+      setTile(8, 12, STEEL);
+      setTile(16, 4, STEEL);
+      setTile(13, 21, STEEL);
+      setTile(13, 13, EMPTY);
+    } else {
+      fillTiles(3, 5, 6, 6, BRICK);
+      fillTiles(4, 14, 4, 22, BRICK);
+      fillTiles(7, 10, 9, 12, WATER);
+      fillTiles(10, 3, 10, 11, BRICK);
+      fillTiles(12, 16, 14, 18, STEEL);
+      fillTiles(14, 6, 18, 7, GRASS);
+      fillTiles(17, 10, 17, 18, BRICK);
+      fillTiles(19, 20, 21, 21, BRICK);
+      setTile(8, 19, STEEL);
+      setTile(15, 4, STEEL);
+    }
+
+    if (state.stage >= 3) {
+      setTile(16, 8, STEEL);
+      setTile(18, 19, STEEL);
+    }
+    if (state.stage >= 6) {
+      setTile(9, 8, STEEL);
+      setTile(14, 21, STEEL);
+    }
+
+    clearSpawnLanes();
+    clearCentralArena();
+    placeMapHazards(layout);
+    setHardWall(13, 13, 5);
+    protectBaseWithBrick();
+  }
+
+  function getBossType(stage) {
+    const idx = (Math.floor(stage / 4) - 1) % 3;
+    if (idx === 0) return "bossShield";
+    if (idx === 1) return "bossBurst";
+    return "bossDash";
+  }
+
+  function getBossName(type) {
+    if (type === "bossShield") return t("boss.types.bossShield");
+    if (type === "bossBurst") return t("boss.types.bossBurst");
+    if (type === "bossDash") return t("boss.types.bossDash");
+    return t("boss.types.unknown");
+  }
+
+  function getBossMechanicName(type) {
+    if (type === "bossShield") return t("boss.mechanics.bossShield");
+    if (type === "bossBurst") return t("boss.mechanics.bossBurst");
+    if (type === "bossDash") return t("boss.mechanics.bossDash");
+    return t("boss.mechanics.unknown");
+  }
+
+  function getBossCastName(boss) {
+    if (!boss?.bossCastType) return t("boss.cast.idle");
+    if (boss.bossCastType === "shield") return t("boss.cast.shield");
+    if (boss.bossCastType === "burst") return boss.burstPattern % 2 === 0 ? t("boss.cast.burstCross") : t("boss.cast.burstDiag");
+    if (boss.bossCastType === "dash") return t("boss.cast.dash");
+    return t("boss.cast.warning");
+  }
+
+  function getDifficultyMode() {
+    return state.difficulty || ["easy", "normal", "hard"][state.menuDifficulty] || "normal";
+  }
+
+  function getDifficultyName() {
+    return t(`difficulty.${getDifficultyMode()}`);
+  }
+
+  function isSinglePlayerMode() {
+    return getCurrentModeValue() === 1;
+  }
+
+  function getDifficultyTuning() {
+    const mode = getDifficultyMode();
+    if (mode === "easy") {
+      return {
+        enemyCountMul: 0.8,
+        maxOnFieldBonus: -1,
+        spawnIntervalMul: 1.18,
+        enemySpeedMul: 0.9,
+        enemyBulletSpeedMul: 0.92,
+        aiBonus: -1,
+        powerupChance: 0.55,
+        powerupCooldown: 760,
+        powerupInitialCooldown: 420,
+        bossHpMul: 0.9,
+        bossCooldownMul: 1.12,
+        bossMinionBonus: -1
+      };
+    }
+    if (mode === "hard") {
+      return {
+        enemyCountMul: 1.15,
+        maxOnFieldBonus: 1,
+        spawnIntervalMul: 0.82,
+        enemySpeedMul: 1.08,
+        enemyBulletSpeedMul: 1.1,
+        aiBonus: 1,
+        powerupChance: 0.3,
+        powerupCooldown: 1040,
+        powerupInitialCooldown: 720,
+        bossHpMul: 1.25,
+        bossCooldownMul: 0.82,
+        bossMinionBonus: 0
+      };
+    }
+    return {
+      enemyCountMul: 1,
+      maxOnFieldBonus: 0,
+      spawnIntervalMul: 1,
+      enemySpeedMul: 1,
+      enemyBulletSpeedMul: 1,
+      aiBonus: 0,
+      powerupChance: 0.42,
+      powerupCooldown: 900,
+      powerupInitialCooldown: 600,
+      bossHpMul: 1,
+      bossCooldownMul: 1,
+      bossMinionBonus: 0
+    };
+  }
+
+  function isHardMode() {
+    return getDifficultyMode() === "hard";
+  }
+
+  function getBossRank(stage) {
+    return Math.max(1, Math.floor(Math.max(1, stage) / 4));
+  }
+
+  function getBossCastLeadFrames(type, phase2 = false) {
+    if (type === "shield") return phase2 ? 15 : 22;
+    if (type === "burst") return phase2 ? 18 : 26;
+    if (type === "dash") return phase2 ? 12 : 16;
+    return 18;
+  }
+
+  function getEnemyTrackingChance(stage, aiLevel, isBoss = false) {
+    const stageBonus = Math.min(0.12, Math.floor(Math.max(1, stage) / 4) * 0.015);
+    const bossBonus = isBoss ? Math.min(0.16, getBossRank(stage) * 0.03) : 0;
+    return clamp(0.1 + aiLevel * 0.08 + stageBonus + bossBonus, 0.12, 0.82);
+  }
+
+  function getEnemyRetargetBase(stage, aiLevel, isBoss = false) {
+    const stageTighten = Math.min(6, Math.floor(Math.max(1, stage) / 5));
+    const bossTighten = isBoss ? Math.min(8, getBossRank(stage) * 2) : 0;
+    return Math.max(12, 38 - aiLevel * 2 - stageTighten - bossTighten);
+  }
+
+  function getEnemyAimedShotChance(stage, aiLevel, isBoss = false) {
+    const stageBonus = Math.min(0.012, Math.floor(Math.max(1, stage) / 4) * 0.0015);
+    const bossBonus = isBoss ? Math.min(0.012, getBossRank(stage) * 0.0025) : 0;
+    return clamp(0.008 + aiLevel * 0.006 + stageBonus + bossBonus, 0.01, 0.055);
+  }
+
+  function getEnemyIdleShotChance(stage, aiLevel) {
+    const stageBonus = Math.min(0.003, Math.floor(Math.max(1, stage) / 5) * 0.00045);
+    return clamp(0.0015 + aiLevel * 0.0007 + stageBonus, 0.0015, 0.007);
+  }
+
+  function getBossHp(stage) {
+    const tuning = getDifficultyTuning();
+    const modeTuning = getModeBalanceTuning();
+    const baseHp = 5 + getBossRank(stage) * 3;
+    return Math.max(4, Math.ceil(baseHp * tuning.bossHpMul * modeTuning.bossHpMul));
+  }
+
+  function getBossMinionCount(stage) {
+    const tuning = getDifficultyTuning();
+    const baseCount = Math.min(1 + Math.floor((getBossRank(stage) - 1) / 2), 2);
+    return clamp(baseCount + tuning.bossMinionBonus, 0, 2);
+  }
+
+  function scaleBossSkillCooldown(frames) {
+    return Math.max(60, Math.floor(frames * getDifficultyTuning().bossCooldownMul));
+  }
+
+  function getStageConfig(stage) {
+    const s = Math.max(1, stage);
+    const isBossStage = s % 4 === 0;
+    const tuning = getDifficultyTuning();
+    const modeTuning = getModeBalanceTuning();
+    const bossMinions = isBossStage ? getBossMinionCount(s) : 0;
+    const baseEnemyCount = Math.min(5 + Math.floor(s * 1.15), 18);
+    const baseMaxOnField = Math.min(2 + Math.floor((s - 1) / 4), 4);
+    const baseSpawnInterval = isBossStage ? 150 : Math.max(195 - s * 4, 95);
+    const baseEnemySpeed = isBossStage ? Math.min((0.86 + s * 0.03) * 0.7, 1.02) : Math.min((0.48 + s * 0.05) * 0.7, 0.92);
+    const baseEnemyBulletSpeed = isBossStage ? Math.min(3.0 + s * 0.08, 4.8) : Math.min(2.4 + s * 0.1, 4.4);
+    return {
+      isBossStage,
+      bossMinions,
+      bossHp: isBossStage ? getBossHp(s) : 0,
+      enemyCount: isBossStage ? 1 + bossMinions : clamp(Math.round(baseEnemyCount * tuning.enemyCountMul * modeTuning.enemyCountMul), 3, 20),
+      maxOnField: isBossStage ? 1 + bossMinions : clamp(baseMaxOnField + tuning.maxOnFieldBonus + modeTuning.maxOnFieldBonus, 1, 5),
+      enemySpawnInterval: Math.max(60, Math.round(baseSpawnInterval * tuning.spawnIntervalMul * modeTuning.spawnIntervalMul)),
+      enemySpeedBase: baseEnemySpeed * tuning.enemySpeedMul,
+      enemyBulletSpeed: baseEnemyBulletSpeed * tuning.enemyBulletSpeedMul,
+      playerBulletSpeed: Math.min(3.8 + s * 0.06, 5.8),
+      aiLevel: clamp(Math.min(1 + Math.floor((s - 1) / 4), 4) + tuning.aiBonus, 1, 4),
+      powerupChance: clamp(tuning.powerupChance + modeTuning.powerupChanceBonus, 0.18, 0.9),
+      powerupCooldown: Math.max(360, Math.round(tuning.powerupCooldown * modeTuning.powerupCooldownMul)),
+      powerupInitialCooldown: Math.max(240, Math.round(tuning.powerupInitialCooldown * modeTuning.powerupInitialCooldownMul))
+    };
+  }
+
+  class FloatText {
+    constructor(x, y, text, color="#fff", life=45) {
+      this.x = x;
+      this.y = y;
+      this.text = text;
+      this.color = color;
+      this.life = life;
+      this.dead = false;
+    }
+    update() {
+      this.y -= 0.5;
+      this.life--;
+      if (this.life <= 0) this.dead = true;
+    }
+    draw() {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, this.life / 45);
+      ctx.fillStyle = this.color;
+      ctx.font = "18px Arial";
+      ctx.fillText(this.text, this.x, this.y);
+      ctx.restore();
+    }
+  }
+
+  class HitEffect {
+    constructor(x, y, color="#fff", size=8, life=10) {
+      this.x = x;
+      this.y = y;
+      this.color = color;
+      this.size = size;
+      this.life = life;
+      this.dead = false;
+    }
+    update() {
+      this.life--;
+      this.size += 0.8;
+      if (this.life <= 0) this.dead = true;
+    }
+    draw() {
+      ctx.save();
+      ctx.globalAlpha = this.life / 10;
+      ctx.strokeStyle = this.color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  class CritEffect {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.life = 18;
+      this.dead = false;
+    }
+    update() {
+      this.life--;
+      if (this.life <= 0) this.dead = true;
+    }
+    draw() {
+      const p = 1 - this.life / 18;
+      const r = 10 + p * 22;
+      ctx.save();
+      ctx.globalAlpha = 1 - p * 0.85;
+      ctx.strokeStyle = COLORS.crit;
+      ctx.fillStyle = "#fff2a8";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
+      ctx.stroke();
+      for (let i = 0; i < 8; i++) {
+        const a = i * Math.PI / 4 + p * 0.6;
+        ctx.beginPath();
+        ctx.moveTo(this.x + Math.cos(a) * 5, this.y + Math.sin(a) * 5);
+        ctx.lineTo(this.x + Math.cos(a) * (r + 8), this.y + Math.sin(a) * (r + 8));
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 4 + p * 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  class Explosion {
+    constructor(x, y, big=false) {
+      this.x = x;
+      this.y = y;
+      this.life = big ? 24 : 14;
+      this.big = big;
+      this.dead = false;
+    }
+    update() {
+      this.life--;
+      if (this.life <= 0) this.dead = true;
+    }
+    draw() {
+      const total = this.big ? 24 : 14;
+      const p = 1 - this.life / total;
+      const r = (this.big ? 26 : 14) * p + 4;
+      ctx.save();
+      ctx.globalAlpha = 0.9 - p * 0.7;
+      ctx.fillStyle = p < 0.5 ? "#f59e0b" : "#ef4444";
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  class SpawnEffect {
+    constructor(x, y, enemyType, eliteType = "") {
+      this.x = x;
+      this.y = y;
+      this.enemyType = enemyType;
+      this.eliteType = eliteType;
+      this.life = 60;
+      this.dead = false;
+    }
+    update() {
+      this.life--;
+      if (this.life <= 0) {
+        spawnEnemyNow(this.x, this.y, this.enemyType, this.eliteType);
+        this.dead = true;
+      }
+    }
+    draw() {
+      const cx = this.x + 14;
+      const cy = this.y + 14;
+      const r = 10 + (60 - this.life) * 0.22;
+      if (Math.floor(this.life / 4) % 2 === 0) {
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx, cy, Math.max(6, r - 8), 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      if (this.eliteType) {
+        ctx.fillStyle = createEliteDescriptor(this.eliteType).badge;
+        ctx.beginPath();
+        ctx.arc(cx, cy - 14, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  class Powerup {
+    constructor(type, x, y) {
+      this.type = type;
+      this.x = x;
+      this.y = y;
+      this.w = 24;
+      this.h = 24;
+      this.life = 1350;
+      this.dead = false;
+    }
+    rect() {
+      return { x: this.x, y: this.y, w: this.w, h: this.h };
+    }
+    center() {
+      return { x: this.x + this.w / 2, y: this.y + this.h / 2 };
+    }
+    getNearestAlivePlayer(radius) {
+      let nearest = null;
+      let bestDistSq = radius * radius;
+      const selfCenter = this.center();
+      for (const p of players) {
+        if (!p.alive) continue;
+        const playerCenter = getRectCenter(p.getRect());
+        const distSq = getDistanceSq(selfCenter.x, selfCenter.y, playerCenter.x, playerCenter.y);
+        if (distSq > bestDistSq) continue;
+        bestDistSq = distSq;
+        nearest = p;
+      }
+      return nearest;
+    }
+    update() {
+      this.life--;
+      if (this.life <= 0) {
+        this.dead = true;
+        return;
+      }
+      if (this.type === "bomb") {
+        const target = this.getNearestAlivePlayer(POWERUP_ATTRACT_RADIUS);
+        if (target) {
+          const selfCenter = this.center();
+          const playerCenter = getRectCenter(target.getRect());
+          const dx = playerCenter.x - selfCenter.x;
+          const dy = playerCenter.y - selfCenter.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist > 0.001) {
+            const step = Math.min(POWERUP_ATTRACT_SPEED, dist);
+            this.x += dx / dist * step;
+            this.y += dy / dist * step;
+          }
+          if (dist <= 16 || rectsOverlap(this.rect(), target.getRect())) {
+            applyPowerup(this.type, target);
+            this.dead = true;
+            return;
+          }
+        }
+      }
+      for (const p of players) {
+        if (p.alive && rectsOverlap(this.rect(), p.getRect())) {
+          applyPowerup(this.type, p);
+          this.dead = true;
+          break;
+        }
+      }
+    }
+    draw() {
+      const cx = this.x + this.w / 2;
+      const cy = this.y + this.h / 2;
+      const pulse = 0.9 + Math.sin(state.frame / 10 + cx * 0.12) * 0.08;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.globalAlpha = pulse;
+      if (this.type === "shield") {
+        ctx.fillStyle = "#38bdf8";
+        ctx.beginPath();
+        ctx.moveTo(0, -10);
+        ctx.lineTo(8, -6);
+        ctx.lineTo(7, 4);
+        ctx.lineTo(0, 10);
+        ctx.lineTo(-7, 4);
+        ctx.lineTo(-8, -6);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = "#7dd3fc";
+        ctx.fillRect(-2, -4, 4, 10);
+      } else if (this.type === "bomb") {
+        ctx.fillStyle = "#f97316";
+        for (let i = 0; i < 8; i++) {
+          const a = i * Math.PI / 4;
+          const inner = 6;
+          const outer = 11;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * inner, Math.sin(a) * inner);
+          ctx.lineTo(Math.cos(a + 0.14) * outer, Math.sin(a + 0.14) * outer);
+          ctx.lineTo(Math.cos(a - 0.14) * outer, Math.sin(a - 0.14) * outer);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.fillStyle = "#7c2d12";
+        ctx.beginPath();
+        ctx.arc(0, 2, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#fed7aa";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(1, -1);
+        ctx.quadraticCurveTo(6, -7, 4, -11);
+        ctx.stroke();
+        ctx.fillStyle = "#fde68a";
+        ctx.beginPath();
+        ctx.moveTo(5, -13);
+        ctx.lineTo(8, -9);
+        ctx.lineTo(3, -8);
+        ctx.closePath();
+        ctx.fill();
+      } else if (this.type === "freeze") {
+        ctx.fillStyle = "#60a5fa";
+        ctx.beginPath();
+        ctx.moveTo(0, -11);
+        ctx.lineTo(9, -6);
+        ctx.lineTo(9, 7);
+        ctx.lineTo(0, 11);
+        ctx.lineTo(-9, 7);
+        ctx.lineTo(-9, -6);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = "#dbeafe";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-5, -2);
+        ctx.lineTo(5, -2);
+        ctx.moveTo(-3, 3);
+        ctx.lineTo(3, 3);
+        ctx.moveTo(-2, -8);
+        ctx.lineTo(4, -4);
+        ctx.stroke();
+      } else if (this.type === "star") {
+        ctx.fillStyle = "#facc15";
+        ctx.beginPath();
+        for (let i = 0; i < 10; i++) {
+          const a = -Math.PI / 2 + i * Math.PI / 5;
+          const r = i % 2 === 0 ? 9 : 4;
+          const px = Math.cos(a) * r;
+          const py = Math.sin(a) * r;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = "#fef3c7";
+        ctx.beginPath();
+        ctx.arc(-2, -2, 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (this.type === "life") {
+        ctx.fillStyle = "#fb7185";
+        ctx.beginPath();
+        ctx.moveTo(0, 9);
+        ctx.bezierCurveTo(-11, 0, -10, -8, -4, -8);
+        ctx.bezierCurveTo(-1, -8, 0, -5, 0, -3);
+        ctx.bezierCurveTo(0, -5, 1, -8, 4, -8);
+        ctx.bezierCurveTo(10, -8, 11, 0, 0, 9);
+        ctx.fill();
+      } else if (this.type === "ammo") {
+        ctx.fillStyle = "#fbbf24";
+        ctx.fillRect(-3, -4, 6, 12);
+        ctx.beginPath();
+        ctx.moveTo(-3, -4);
+        ctx.lineTo(0, -11);
+        ctx.lineTo(3, -4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = "#fef3c7";
+        ctx.fillRect(-2, -1, 4, 5);
+        ctx.fillStyle = "#7c2d12";
+        ctx.fillRect(-3, 8, 6, 3);
+      }
+      ctx.restore();
+    }
+  }
+
+  class Bullet {
+    constructor(x, y, vx, vy, owner, damage=1) {
+      this.x = x;
+      this.y = y;
+      this.vx = vx;
+      this.vy = vy;
+      this.owner = owner;
+      this.damage = damage;
+      this.size = 8;
+      this.alive = true;
+      this.clashGuard = owner?.isPlayer && damage > 1 ? 1 : 0;
+    }
+    rect() {
+      return { x: this.x, y: this.y, w: this.size, h: this.size };
+    }
+    update() {
+      if (!this.alive) return;
+
+      this.x += this.vx;
+      this.y += this.vy;
+
+      if (this.x < 0 || this.y < 0 || this.x + this.size > GAME_W || this.y + this.size > BASE_H) {
+        this.alive = false;
+        return;
+      }
+
+      const c = Math.floor((this.x + this.size / 2) / TILE);
+      const r = Math.floor((this.y + this.size / 2) / TILE);
+      const tile = map[r]?.[c];
+
+      if (tile === BRICK) {
+        if (isBaseDefenseCell(r, c)) {
+          const currentHp = Math.max(1, brickArmorHP[r][c] || 1);
+          if (currentHp > 1) {
+            brickArmorHP[r][c] = currentHp - 1;
+          } else {
+            map[r][c] = EMPTY;
+            brickArmorHP[r][c] = 0;
+          }
+        } else {
+          map[r][c] = EMPTY;
+        }
+        this.alive = false;
+        hitEffects.push(new HitEffect(this.x, this.y, "#f59e0b"));
+        return;
+      }
+      if (tile === HARD) {
+        hardWallHP[r][c]--;
+        if (hardWallHP[r][c] <= 0) {
+          map[r][c] = EMPTY;
+          hardWallHP[r][c] = 0;
+          explosions.push(new Explosion(c * TILE + 16, r * TILE + 16, true));
+        }
+        this.alive = false;
+        hitEffects.push(new HitEffect(this.x, this.y, COLORS.hard));
+        return;
+      }
+      if (tile === OIL) {
+        this.alive = false;
+        triggerBarrelExplosion(r, c);
+        return;
+      }
+      if (tile === STEEL) {
+        this.alive = false;
+        hitEffects.push(new HitEffect(this.x, this.y, "#cbd5e1"));
+        return;
+      }
+
+      if (eagle.alive && r === eagle.row && c === eagle.col) {
+        eagle.alive = false;
+        this.alive = false;
+        explosions.push(new Explosion(eagle.col * TILE + 16, eagle.row * TILE + 16, true));
+        state.shake = 12;
+        endGame("result.baseDestroyed");
+        return;
+      }
+
+      const targets = this.owner.isPlayer ? enemies : players;
+      for (const t of targets) {
+        if (!t.alive) continue;
+        if (rectsOverlap(this.rect(), t.getRect())) {
+          this.alive = false;
+
+          const dodged = t.isPlayer && t.invulnFrames > 0;
+          const dead = t.takeHit(this.damage);
+          hitEffects.push(new HitEffect(t.x + 14, t.y + 14, dodged ? COLORS.shield : (this.damage > 1 ? COLORS.crit : "#fff"), this.damage > 1 ? 12 : 8));
+          if (this.damage > 1) {
+            hitEffects.push(new CritEffect(t.x + 14, t.y + 14));
+            floatTexts.push(new FloatText(t.x, t.y, t("effects.crit"), COLORS.crit, 35));
+            state.shake = Math.max(state.shake, 4);
+            applyPlayerCritRelic(this.owner);
+          } else if (dodged) {
+            floatTexts.push(new FloatText(t.x - 4, t.y - 8, t("effects.dodge"), COLORS.shield, 24));
+          }
+
+          if (dead) {
+            explosions.push(new Explosion(t.x + 14, t.y + 14, t.enemyType?.startsWith("boss")));
+            state.shake = Math.max(state.shake, t.enemyType?.startsWith("boss") ? 14 : 5);
+
+            if (t.isPlayer) {
+              onPlayerDead(t);
+            } else {
+              handleEnemyDefeat(t);
+            }
+          }
+          return;
+        }
+      }
+
+    }
+    draw() {
+      if (!this.alive) return;
+      ctx.fillStyle = this.owner.isPlayer
+        ? (this.damage > 1 ? COLORS.crit : COLORS.bullet)
+        : (this.owner.bulletColor || COLORS.enemyBullet);
+      ctx.fillRect(this.x, this.y, this.size, this.size);
+    }
+  }
+
+  function getBulletBucketCoord(bullet) {
+    return {
+      x: Math.floor((bullet.x + bullet.size * 0.5) / BULLET_CLASH_BUCKET),
+      y: Math.floor((bullet.y + bullet.size * 0.5) / BULLET_CLASH_BUCKET)
+    };
+  }
+
+  function resolveBulletClashPair(a, b) {
+    if (!a.alive || !b.alive) return;
+    const aGuard = a.clashGuard > 0;
+    const bGuard = b.clashGuard > 0;
+    if (aGuard && !bGuard) {
+      a.clashGuard--;
+      b.alive = false;
+      hitEffects.push(new HitEffect(a.x, a.y, COLORS.crit, 10, 12));
+      return;
+    }
+    if (!aGuard && bGuard) {
+      b.clashGuard--;
+      a.alive = false;
+      hitEffects.push(new HitEffect(a.x, a.y, COLORS.enemyBullet, 8, 10));
+      return;
+    }
+    a.alive = false;
+    b.alive = false;
+    hitEffects.push(new HitEffect((a.x + b.x) * 0.5, (a.y + b.y) * 0.5, "#fff"));
+  }
+
+  function resolveBulletClashes() {
+    if (bullets.length < 2) return;
+
+    const buckets = new Map();
+    for (const bullet of bullets) {
+      if (!bullet.alive) continue;
+      const cell = getBulletBucketCoord(bullet);
+      const key = makeBucketKey(cell.x, cell.y);
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key).push(bullet);
+    }
+
+    const processed = new Set();
+    for (const bullet of bullets) {
+      if (!bullet.alive || processed.has(bullet)) continue;
+
+      const cell = getBulletBucketCoord(bullet);
+      let resolved = false;
+      for (let oy = -1; oy <= 1; oy++) {
+        for (let ox = -1; ox <= 1; ox++) {
+          const nearby = buckets.get(makeBucketKey(cell.x + ox, cell.y + oy));
+          if (!nearby) continue;
+
+          for (const other of nearby) {
+            if (other === bullet || !other.alive || processed.has(other)) continue;
+            if (other.owner.isPlayer === bullet.owner.isPlayer) continue;
+            if (!rectsOverlap(bullet.rect(), other.rect())) continue;
+
+            processed.add(bullet);
+            processed.add(other);
+            resolveBulletClashPair(bullet, other);
+            resolved = true;
+            break;
+          }
+          if (resolved || !bullet.alive) break;
+        }
+        if (resolved || !bullet.alive) break;
+      }
+    }
+  }
+  function getPreferredGrassDirection(tank, target) {
+    const dirs = [
+      ["up", 0, -tank.speed],
+      ["down", 0, tank.speed],
+      ["left", -tank.speed, 0],
+      ["right", tank.speed, 0]
+    ];
+    const inGrass = rectTouchesTile(tank.getRect(), GRASS);
+    let bestDir = "";
+    let bestScore = -Infinity;
+    for (const [dir, dx, dy] of dirs) {
+      const nx = tank.x + dx;
+      const ny = tank.y + dy;
+      if (!tank.canOccupyTerrain(nx, ny)) continue;
+      const rect = tank.getRect(nx, ny);
+      const touchesGrass = rectTouchesTile(rect, GRASS);
+      let score = touchesGrass ? 6 : (inGrass ? -2 : 0);
+      if (target) {
+        const dist = Math.abs(target.x - nx) + Math.abs(target.y - ny);
+        score -= dist * 0.01;
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        bestDir = dir;
+      }
+    }
+    return bestScore >= 4 ? bestDir : "";
+  }
+  function applyPlayerCritRelic(owner) {
+    if (!owner?.isPlayer || !isOwnedRelic("ammoEcho")) return;
+    if (owner.ammoEchoCooldown > 0) return;
+    owner.ammoEchoCooldown = 18;
+    owner.ammo = Math.min(owner.ammoCap, owner.ammo + 1);
+    floatTexts.push(new FloatText(owner.x - 4, owner.y - 12, "+1", COLORS.shield, 20));
+  }
+
+  class Tank {
+    constructor(x, y, opts = {}) {
+      this.x = x;
+      this.y = y;
+      this.w = opts.isPlayer ? 24 : 28;
+      this.h = opts.isPlayer ? 24 : 28;
+      this.dir = opts.dir || "up";
+      this.isPlayer = !!opts.isPlayer;
+      this.controlType = opts.controlType || 1;
+      this.color = opts.color || COLORS.enemy;
+      this.bulletColor = opts.bulletColor || null;
+      this.speed = opts.speed || 1;
+      this.bulletSpeed = opts.bulletSpeed || 4;
+      this.cooldownMax = opts.cooldownMax || 40;
+      this.cooldown = 0;
+      this.spawnShield = opts.spawnShield || 0;
+      this.enemyType = opts.enemyType || "normal";
+      this.hp = opts.hp || 1;
+      this.maxHp = opts.hp || 1;
+      this.scoreValue = opts.scoreValue || 100;
+      this.aiTimer = 0;
+      this.alive = true;
+      this.lives = opts.lives ?? -1;
+
+      this.ammoCap = opts.ammoCap ?? DEFAULT_AMMO_CAP;
+      this.ammo = opts.ammo ?? this.ammoCap;
+      this.isReloading = false;
+      this.reloadTimer = 0;
+      this.reloadDuration = opts.reloadDuration ?? RELOAD_TIME;
+      this.doubleDamageChance = opts.doubleDamageChance ?? 0;
+      this.playerDashCooldownMax = opts.playerDashCooldownMax ?? PLAYER_DASH_COOLDOWN;
+      this.playerDashCooldown = opts.playerDashCooldown ?? 0;
+      this.playerDashFrames = 0;
+      this.invulnFrames = 0;
+      this.grassRevealTimer = 0;
+      this.eliteType = opts.eliteType || "";
+      this.eliteShieldCharges = opts.eliteShieldCharges || 0;
+      this.eliteBadgeColor = opts.eliteBadgeColor || "#fff";
+      this.prefersGrass = !!opts.prefersGrass;
+      this.ammoEchoCooldown = 0;
+      this.dashAfterglowArmed = false;
+
+      this.bossSkillCd = 0;
+      this.bossCastType = "";
+      this.bossCastTimer = 0;
+      this.bossDashAimDir = "";
+      this.dashFrames = 0;
+      this.dashHitCooldown = 0;
+      this.burstPattern = 0;
+      this.phase2 = false;
+    }
+
+    getRect(nx = this.x, ny = this.y) {
+      return { x: nx, y: ny, w: this.w, h: this.h };
+    }
+
+    canOccupyTerrain(nx, ny) {
+      if (nx < 0 || ny < 0 || nx + this.w > GAME_W || ny + this.h > BASE_H) return false;
+
+      const rect = this.getRect(nx, ny);
+      const sc = Math.floor(rect.x / TILE);
+      const ec = Math.floor((rect.x + rect.w - 1) / TILE);
+      const sr = Math.floor(rect.y / TILE);
+      const er = Math.floor((rect.y + rect.h - 1) / TILE);
+
+      for (let r = sr; r <= er; r++) {
+        for (let c = sc; c <= ec; c++) {
+          const tile = map[r]?.[c];
+          if (tankBlocked(tile)) return false;
+          if (eagle.alive && r === eagle.row && c === eagle.col) return false;
+        }
+      }
+      return true;
+    }
+
+    canMove(nx, ny) {
+      if (!this.canOccupyTerrain(nx, ny)) return false;
+      const rect = this.getRect(nx, ny);
+      for (const t of [...players, ...enemies]) {
+        if (t !== this && t.alive && rectsOverlap(rect, t.getRect())) return false;
+      }
+      return true;
+    }
+
+    move(dx, dy, dir) {
+      this.dir = dir;
+      const nx = this.x + dx;
+      const ny = this.y + dy;
+      if (this.canMove(nx, ny)) {
+        this.x = nx;
+        this.y = ny;
+      }
+    }
+
+    moveForward(speed) {
+      if (this.dir === "up") this.move(0, -speed, "up");
+      else if (this.dir === "down") this.move(0, speed, "down");
+      else if (this.dir === "left") this.move(-speed, 0, "left");
+      else if (this.dir === "right") this.move(speed, 0, "right");
+    }
+
+    startPlayerDash() {
+      if (!this.isPlayer || !this.alive || this.playerDashCooldown > 0 || this.playerDashFrames > 0) return;
+      this.playerDashCooldown = this.playerDashCooldownMax;
+      this.playerDashFrames = PLAYER_DASH_FRAMES;
+      this.invulnFrames = Math.max(this.invulnFrames, PLAYER_DASH_INVULN);
+      this.dashAfterglowArmed = isOwnedRelic("dashAfterglow");
+      hitEffects.push(new HitEffect(this.x + 14, this.y + 14, COLORS.shield, 10, 14));
+      floatTexts.push(new FloatText(this.x - 4, this.y - 8, t("effects.dash"), COLORS.shield, 24));
+    }
+
+    revealFromGrass(frames = 24) {
+      if (!this.isPlayer) this.grassRevealTimer = Math.max(this.grassRevealTimer, frames + getGrassRevealBonusFrames());
+    }
+
+    startBossCast(type, frames, target = null) {
+      this.revealFromGrass(type === "dash" ? 24 : 18);
+      this.bossCastType = type;
+      this.bossCastTimer = frames;
+      if (type === "dash" && target) {
+        const dx = (target.x + target.w / 2) - (this.x + this.w / 2);
+        const dy = (target.y + target.h / 2) - (this.y + this.h / 2);
+        this.bossDashAimDir = Math.abs(dx) >= Math.abs(dy)
+          ? (dx >= 0 ? "right" : "left")
+          : (dy >= 0 ? "down" : "up");
+      }
+    }
+
+    resolveBossCast(target) {
+      if (!this.bossCastType || this.bossCastTimer <= 0) return false;
+      this.bossCastTimer--;
+      if (this.bossCastTimer > 0) return true;
+
+      const castType = this.bossCastType;
+      this.bossCastType = "";
+      if (castType === "shield") {
+        this.spawnShield = Math.max(this.spawnShield, this.phase2 ? 52 : 40);
+        this.bossSkillCd = scaleBossSkillCooldown(this.phase2 ? 160 : 280);
+      } else if (castType === "burst") {
+        this.burstAlternating();
+        this.bossSkillCd = scaleBossSkillCooldown(this.phase2 ? 105 : 195);
+      } else if (castType === "dash" && target) {
+        this.dir = this.bossDashAimDir || this.dir;
+        this.bossDashAimDir = "";
+        this.dashFrames = this.phase2 ? 44 : 34;
+        this.bossSkillCd = scaleBossSkillCooldown(this.phase2 ? 120 : 240);
+      }
+      return true;
+    }
+
+    resolveTankOverlap() {
+      for (const t of [...players, ...enemies]) {
+        if (t === this || !t.alive || !rectsOverlap(this.getRect(), t.getRect())) continue;
+
+        const self = this.getRect();
+        const other = t.getRect();
+        const selfCx = self.x + self.w / 2;
+        const selfCy = self.y + self.h / 2;
+        const otherCx = other.x + other.w / 2;
+        const otherCy = other.y + other.h / 2;
+        const fallback = this.isPlayer ? -1 : 1;
+        const dirX = selfCx === otherCx ? fallback : (selfCx < otherCx ? -1 : 1);
+        const dirY = selfCy === otherCy ? fallback : (selfCy < otherCy ? -1 : 1);
+        const overlapX = Math.min(self.x + self.w - other.x, other.x + other.w - self.x);
+        const overlapY = Math.min(self.y + self.h - other.y, other.y + other.h - self.y);
+
+        if (overlapX <= overlapY) {
+          const nx = this.x + dirX * Math.min(2.5, overlapX / 2 + 0.5);
+          if (this.canOccupyTerrain(nx, this.y)) {
+            this.x = nx;
+            continue;
+          }
+        }
+
+        const ny = this.y + dirY * Math.min(2.5, overlapY / 2 + 0.5);
+        if (this.canOccupyTerrain(this.x, ny)) {
+          this.y = ny;
+        }
+      }
+    }
+
+    tryStartReload() {
+      if (!this.isPlayer || this.isReloading || this.ammo > 0) return;
+      this.isReloading = true;
+      this.reloadTimer = this.reloadDuration;
+    }
+
+    updateReload() {
+      if (!this.isPlayer || !this.isReloading) return;
+      this.reloadTimer -= 1000 / 60;
+      if (this.reloadTimer <= 0) {
+        this.reloadTimer = 0;
+        this.isReloading = false;
+        this.ammo = this.ammoCap;
+      }
+    }
+
+    spawnBullet(vx, vy, fromCenter = false) {
+      const damage = (this.isPlayer && Math.random() < this.doubleDamageChance) ? 2 : 1;
+      let x = this.x + this.w / 2 - 4;
+      let y = this.y + this.h / 2 - 4;
+
+      if (!fromCenter) {
+        if (this.dir === "up") y = this.y - 6;
+        else if (this.dir === "down") y = this.y + this.h - 2;
+        else if (this.dir === "left") x = this.x - 6;
+        else if (this.dir === "right") x = this.x + this.w - 2;
+      }
+
+      bullets.push(new Bullet(x, y, vx, vy, this, damage));
+    }
+
+    shoot() {
+      if (!this.alive || this.cooldown > 0) return;
+
+      if (this.isPlayer) {
+        if (this.isReloading) return;
+        if (this.ammo <= 0) {
+          this.tryStartReload();
+          return;
+        }
+      }
+
+      this.cooldown = this.cooldownMax;
+      this.revealFromGrass(22);
+
+      if (this.isPlayer) {
+        this.ammo--;
+        if (this.ammo <= 0) this.tryStartReload();
+      }
+
+      if (this.dir === "up") this.spawnBullet(0, -this.bulletSpeed);
+      else if (this.dir === "down") this.spawnBullet(0, this.bulletSpeed);
+      else if (this.dir === "left") this.spawnBullet(-this.bulletSpeed, 0);
+      else if (this.dir === "right") this.spawnBullet(this.bulletSpeed, 0);
+    }
+
+    burstAlternating() {
+      const sp = this.bulletSpeed;
+      const diagonal = this.burstPattern % 2 === 1;
+      const dirs = diagonal
+        ? [
+            [ sp * 0.78, sp * 0.78], [-sp * 0.78, sp * 0.78],
+            [ sp * 0.78, -sp * 0.78], [-sp * 0.78, -sp * 0.78]
+          ]
+        : [[ sp, 0], [-sp, 0], [0, sp], [0, -sp]];
+      this.burstPattern++;
+      for (const [vx, vy] of dirs) this.spawnBullet(vx, vy, true);
+    }
+
+    dealDashCollisionDamage() {
+      if (this.enemyType !== "bossDash" || this.dashFrames <= 0 || this.dashHitCooldown > 0) return;
+
+      const hitRect = { x: this.x - 6, y: this.y - 6, w: this.w + 12, h: this.h + 12 };
+      for (const p of players) {
+        if (!p.alive || !rectsOverlap(hitRect, p.getRect())) continue;
+
+        const shielded = p.spawnShield > 0 || p.invulnFrames > 0;
+        const dead = p.takeHit(1);
+        this.dashHitCooldown = 30;
+        hitEffects.push(new HitEffect(p.x + 14, p.y + 14, shielded ? COLORS.shield : COLORS.crit, 12));
+
+        if (shielded) {
+          floatTexts.push(new FloatText(p.x - 12, p.y - 10, p.invulnFrames > 0 ? t("effects.invulnDodge") : t("effects.shieldBlock"), COLORS.shield, 35));
+          return;
+        }
+
+        floatTexts.push(new FloatText(p.x - 6, p.y - 10, t("effects.ram"), COLORS.crit, 35));
+        state.shake = Math.max(state.shake, 8);
+
+        if (dead) {
+          explosions.push(new Explosion(p.x + 14, p.y + 14, false));
+          onPlayerDead(p);
+        }
+        return;
+      }
+    }
+
+    takeHit(dmg = 1) {
+      if (this.spawnShield > 0 || this.invulnFrames > 0) return false;
+      if (!this.isPlayer && this.eliteType === "shield" && this.eliteShieldCharges > 0) {
+        this.eliteShieldCharges--;
+        hitEffects.push(new HitEffect(this.x + 14, this.y + 14, COLORS.shield, 12, 16));
+        floatTexts.push(new FloatText(this.x - 12, this.y - 10, t("effects.shieldBlock"), COLORS.shield, 30));
+        state.shake = Math.max(state.shake, 2);
+        return false;
+      }
+      this.revealFromGrass(24);
+      this.hp -= dmg;
+
+      if (!this.isPlayer && this.enemyType.startsWith("boss") && !this.phase2 && this.hp <= this.maxHp * 0.5) {
+        this.phase2 = true;
+        this.speed *= 1.15;
+        this.bulletSpeed *= 1.1;
+        this.cooldownMax = Math.max(16, this.cooldownMax - 4);
+        floatTexts.push(new FloatText(this.x - 10, this.y - 8, t("effects.phase2"), "#ff9f43", 45));
+        state.shake = Math.max(state.shake, 8);
+      }
+
+      if (this.hp <= 0) {
+        this.alive = false;
+        return true;
+      }
+      return false;
+    }
+
+    updatePlayer() {
+      const mudMul = getTerrainSpeedMul(this.getRect());
+      if (this.playerDashFrames > 0) {
+        this.playerDashFrames--;
+        this.moveForward(this.speed * PLAYER_DASH_SPEED_MUL * mudMul);
+        if (this.playerDashFrames === 0 && this.dashAfterglowArmed) {
+          this.invulnFrames = Math.max(this.invulnFrames, 24);
+          this.dashAfterglowArmed = false;
+        }
+        return;
+      }
+
+      const activeDir = getActiveHeldDirection(this.controlType);
+      const walkSpeed = this.speed * mudMul;
+      if (activeDir === "up") this.move(0, -walkSpeed, "up");
+      else if (activeDir === "down") this.move(0, walkSpeed, "down");
+      else if (activeDir === "left") this.move(-walkSpeed, 0, "left");
+      else if (activeDir === "right") this.move(walkSpeed, 0, "right");
+    }
+
+    updateAI() {
+      if (state.freezeTimer > 0) return;
+
+      const cfg = getStageConfig(state.stage);
+      const ai = cfg.aiLevel;
+      const isBossEnemy = this.enemyType.startsWith("boss");
+
+      const alivePlayers = players.filter(p => p.alive);
+      const target = alivePlayers.length
+        ? alivePlayers.reduce((a, b) => {
+            const da = Math.abs(a.x - this.x) + Math.abs(a.y - this.y);
+            const db = Math.abs(b.x - this.x) + Math.abs(b.y - this.y);
+            return da < db ? a : b;
+          })
+        : null;
+
+      this.aiTimer--;
+      if (isBossEnemy && this.bossSkillCd > 0) this.bossSkillCd--;
+      if (this.dashFrames > 0) this.dashFrames--;
+      if (isBossEnemy && this.resolveBossCast(target)) return;
+
+      if (this.aiTimer <= 0) {
+        const grassDir = this.prefersGrass ? getPreferredGrassDirection(this, target) : "";
+        if (grassDir) {
+          this.dir = grassDir;
+        } else if (target && (ai >= 2 || isBossEnemy) && Math.random() < getEnemyTrackingChance(state.stage, ai, isBossEnemy)) {
+          const dx = target.x - this.x;
+          const dy = target.y - this.y;
+          if (Math.abs(dx) > Math.abs(dy)) this.dir = dx > 0 ? "right" : "left";
+          else this.dir = dy > 0 ? "down" : "up";
+        } else {
+          this.dir = pick(["up", "down", "left", "right"]);
+        }
+        this.aiTimer = getEnemyRetargetBase(state.stage, ai, isBossEnemy) + Math.random() * (isBossEnemy ? 18 : 24);
+      }
+
+      if (this.enemyType === "bossShield" && this.bossSkillCd <= 0) {
+        this.startBossCast("shield", getBossCastLeadFrames("shield", this.phase2), target);
+        return;
+      }
+
+      if (this.enemyType === "bossBurst" && this.bossSkillCd <= 0) {
+        this.startBossCast("burst", getBossCastLeadFrames("burst", this.phase2), target);
+        return;
+      }
+
+      if (this.enemyType === "bossDash" && this.bossSkillCd <= 0 && target) {
+        this.startBossCast("dash", getBossCastLeadFrames("dash", this.phase2), target);
+        return;
+      }
+
+      if (target) {
+        const sameRow = Math.abs(target.y - this.y) < 20;
+        const sameCol = Math.abs(target.x - this.x) < 20;
+        if ((sameRow || sameCol) && Math.random() < getEnemyAimedShotChance(state.stage, ai, isBossEnemy)) this.shoot();
+      } else if (Math.random() < getEnemyIdleShotChance(state.stage, ai)) {
+        this.shoot();
+      }
+
+      let moveSpeed = this.speed * getTerrainSpeedMul(this.getRect());
+      if (this.enemyType === "bossDash" && this.dashFrames > 0) moveSpeed *= this.phase2 ? 3.0 : 2.6;
+
+      const oldX = this.x, oldY = this.y;
+      if (this.dir === "up") this.move(0, -moveSpeed, "up");
+      else if (this.dir === "down") this.move(0, moveSpeed, "down");
+      else if (this.dir === "left") this.move(-moveSpeed, 0, "left");
+      else if (this.dir === "right") this.move(moveSpeed, 0, "right");
+
+      if (this.enemyType === "bossDash" && this.dashFrames > 0) this.dealDashCollisionDamage();
+
+      if (oldX === this.x && oldY === this.y && Math.random() < 0.15) {
+        this.dir = pick(["up", "down", "left", "right"]);
+      }
+    }
+
+    update() {
+      if (!this.alive) return;
+      if (this.cooldown > 0) this.cooldown--;
+      if (this.spawnShield > 0) this.spawnShield--;
+      if (this.playerDashCooldown > 0) this.playerDashCooldown--;
+      if (this.invulnFrames > 0) this.invulnFrames--;
+      if (this.grassRevealTimer > 0) this.grassRevealTimer--;
+      if (this.dashHitCooldown > 0) this.dashHitCooldown--;
+      if (this.ammoEchoCooldown > 0) this.ammoEchoCooldown--;
+      this.updateReload();
+
+      if (this.isPlayer) this.updatePlayer();
+      else this.updateAI();
+      this.resolveTankOverlap();
+    }
+
+    drawPlayer1() {
+      ctx.fillStyle = this.color;
+      ctx.fillRect(-12, -14, 8, 28);
+      ctx.fillRect(4, -14, 8, 28);
+      ctx.fillRect(-10, -10, 20, 20);
+      ctx.fillStyle = "#111";
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(-5, -5, 10, 10);
+      ctx.fillStyle = this.color;
+      ctx.fillRect(-3, -18, 6, 16);
+    }
+
+    drawPlayer2() {
+      ctx.fillStyle = this.color;
+      ctx.fillRect(-13, -13, 26, 26);
+      ctx.fillStyle = "#0b1220";
+      ctx.fillRect(-8, -8, 16, 16);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(-2, -18, 4, 16);
+      ctx.fillRect(-12, -14, 6, 28);
+      ctx.fillRect(6, -14, 6, 28);
+    }
+
+    drawNormalEnemy() {
+      ctx.fillStyle = this.color;
+      ctx.fillRect(-12, -14, 8, 28);
+      ctx.fillRect(4, -14, 8, 28);
+      ctx.fillRect(-10, -10, 20, 20);
+
+      ctx.fillStyle = "#222";
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = this.color;
+      ctx.fillRect(-3, -18, 6, 16);
+
+      if (this.enemyType === "heavy") {
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-10, -10, 20, 20);
+      }
+      if (this.enemyType === "fast") {
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(-8, 6, 16, 2);
+      }
+      if (this.enemyType === "shooter") {
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(-2, -8, 4, 8);
+      }
+    }
+    drawEliteMarker() {
+      if (!this.eliteType) return;
+      const cx = this.x + this.w / 2;
+      const top = this.y - 9;
+      ctx.save();
+      ctx.fillStyle = this.eliteBadgeColor;
+      ctx.beginPath();
+      ctx.arc(cx, top, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#111";
+      ctx.font = "bold 10px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const label = this.eliteType === "shield" ? "盾" : this.eliteType === "rapid" ? "速" : this.eliteType === "supply" ? "补" : "伏";
+      ctx.fillText(label, cx, top + 0.5);
+      ctx.restore();
+    }
+
+    drawBoss() {
+      ctx.fillStyle = this.color;
+      ctx.fillRect(-13, -15, 26, 30);
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(-13, -15, 26, 30);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(-4, -20, 8, 18);
+
+      if (this.enemyType === "bossShield") {
+        ctx.beginPath();
+        ctx.arc(0, 0, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#ffd1d1";
+        ctx.strokeRect(-9, -9, 18, 18);
+      } else if (this.enemyType === "bossBurst") {
+        for (let i = 0; i < 8; i++) {
+          const a = i * Math.PI / 4;
+          ctx.beginPath();
+          ctx.arc(Math.cos(a) * 8, Math.sin(a) * 8, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (this.enemyType === "bossDash") {
+        ctx.fillRect(-10, -3, 20, 6);
+        ctx.fillRect(-3, -10, 6, 20);
+      }
+
+      if (this.phase2) {
+        ctx.strokeStyle = "#ff9f43";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-15, -17, 30, 34);
+      }
+    }
+
+    draw() {
+      if (!this.alive) return;
+      const grassActionVisible = !this.isPlayer && this.grassRevealTimer > 0;
+      const concealedInGrass = !this.isPlayer && rectTouchesTile(this.getRect(), GRASS) && !grassActionVisible;
+      if (concealedInGrass) return;
+
+      if (this.isPlayer && this.playerDashFrames > 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.28;
+        ctx.fillStyle = COLORS.shield;
+        ctx.fillRect(this.x - 5, this.y - 5, this.w + 10, this.h + 10);
+        ctx.restore();
+      }
+
+      ctx.save();
+      ctx.translate(this.x + this.w / 2, this.y + this.h / 2);
+
+      const renderDir = (!this.isPlayer && this.bossCastType === "dash" && this.bossDashAimDir)
+        ? this.bossDashAimDir
+        : this.dir;
+      let angle = 0;
+      if (renderDir === "right") angle = Math.PI / 2;
+      else if (renderDir === "down") angle = Math.PI;
+      else if (renderDir === "left") angle = -Math.PI / 2;
+      ctx.rotate(angle);
+
+      if (this.isPlayer && this.controlType === 1) this.drawPlayer1();
+      else if (this.isPlayer && this.controlType === 2) this.drawPlayer2();
+      else if (this.enemyType.startsWith("boss")) this.drawBoss();
+      else this.drawNormalEnemy();
+
+      ctx.restore();
+
+      if (!this.isPlayer && this.eliteType) this.drawEliteMarker();
+
+      if ((!concealedInGrass || grassActionVisible) && this.enemyType.startsWith("boss") && this.bossCastTimer > 0) {
+        const cx = this.x + this.w / 2;
+        const cy = this.y + this.h / 2;
+        const pulse = 0.7 + (Math.sin(state.frame * 0.35) + 1) * 0.15;
+        ctx.save();
+        ctx.globalAlpha = pulse;
+        ctx.strokeStyle = this.bossCastType === "shield" ? COLORS.shield : (this.bossCastType === "dash" ? "#fb7185" : "#facc15");
+        ctx.lineWidth = 3;
+        if (this.bossCastType === "shield") {
+          ctx.beginPath();
+          ctx.arc(cx, cy, 24, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(cx, cy, 31, 0, Math.PI * 2);
+          ctx.stroke();
+        } else if (this.bossCastType === "burst") {
+          const diagonal = this.burstPattern % 2 === 1;
+          const dirs = diagonal
+            ? [[1, 1], [-1, 1], [1, -1], [-1, -1]]
+            : [[1, 0], [-1, 0], [0, 1], [0, -1]];
+          for (const [dx, dy] of dirs) {
+            ctx.beginPath();
+            ctx.moveTo(cx + dx * 10, cy + dy * 10);
+            ctx.lineTo(cx + dx * 54, cy + dy * 54);
+            ctx.stroke();
+          }
+        } else if (this.bossCastType === "dash") {
+          const len = 90;
+          const aimDir = this.bossDashAimDir || this.dir;
+          const dirVec = aimDir === "up" ? [0, -1]
+            : aimDir === "down" ? [0, 1]
+            : aimDir === "left" ? [-1, 0]
+            : [1, 0];
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + dirVec[0] * len, cy + dirVec[1] * len);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(cx, cy, 20, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      if (this.isPlayer) drawPlayerTankStatusIcons(this);
+
+      if ((this.spawnShield > 0 || this.invulnFrames > 0) && Math.floor(state.frame / 4) % 2 === 0) {
+        ctx.save();
+        ctx.strokeStyle = this.invulnFrames > 0 ? COLORS.shield : "#fff";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(this.x + this.w / 2, this.y + this.h / 2, 18 + (state.frame % 5), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+  }
+
+  function createPlayer(controlType, lives = 3, ammoCap = DEFAULT_AMMO_CAP, ammo = ammoCap, carry = {}) {
+    const cfg = getStageConfig(state.stage);
+    const old = players.find(p => p.controlType === controlType);
+    const spawnY = BASE_H - TILE * 4;
+    const x = controlType === 1 ? (GAME_W / 2 - 96) : (GAME_W / 2 + 64);
+
+    return new Tank(x, spawnY, {
+      isPlayer: true,
+      controlType,
+      color: controlType === 1 ? COLORS.p1 : COLORS.p2,
+      speed: 2.2,
+      bulletSpeed: carry.bulletSpeed ?? old?.bulletSpeed ?? cfg.playerBulletSpeed,
+      cooldownMax: carry.cooldownMax ?? old?.cooldownMax ?? 18,
+      spawnShield: carry.spawnShield ?? Math.max(120, state.pendingStageShield),
+      lives,
+      ammoCap,
+      ammo,
+      reloadDuration: carry.reloadDuration ?? old?.reloadDuration ?? RELOAD_TIME,
+      doubleDamageChance: carry.doubleDamageChance ?? old?.doubleDamageChance ?? 0,
+      playerDashCooldownMax: carry.playerDashCooldownMax ?? old?.playerDashCooldownMax ?? PLAYER_DASH_COOLDOWN,
+      playerDashCooldown: carry.playerDashCooldown ?? old?.playerDashCooldown ?? 0
+    });
+  }
+
+  function spawnPlayersFresh() {
+    players.length = 0;
+    players.push(createPlayer(1, 3, DEFAULT_AMMO_CAP, DEFAULT_AMMO_CAP));
+    if (state.mode === 2) players.push(createPlayer(2, 3, DEFAULT_AMMO_CAP, DEFAULT_AMMO_CAP));
+  }
+
+  function rebuildPlayersKeepState() {
+    const old1 = players.find(p => p.controlType === 1);
+    const old2 = players.find(p => p.controlType === 2);
+
+    players.length = 0;
+    players.push(createPlayer(
+      1,
+      old1?.lives ?? 3,
+      old1?.ammoCap ?? DEFAULT_AMMO_CAP,
+      Math.min(old1?.ammo ?? DEFAULT_AMMO_CAP, old1?.ammoCap ?? DEFAULT_AMMO_CAP),
+      {
+        bulletSpeed: old1?.bulletSpeed,
+        cooldownMax: old1?.cooldownMax,
+        reloadDuration: old1?.reloadDuration,
+        doubleDamageChance: old1?.doubleDamageChance,
+        playerDashCooldownMax: old1?.playerDashCooldownMax,
+        playerDashCooldown: old1?.playerDashCooldown
+      }
+    ));
+
+    if (state.mode === 2) {
+      players.push(createPlayer(
+        2,
+        old2?.lives ?? 3,
+        old2?.ammoCap ?? DEFAULT_AMMO_CAP,
+        Math.min(old2?.ammo ?? DEFAULT_AMMO_CAP, old2?.ammoCap ?? DEFAULT_AMMO_CAP),
+        {
+          bulletSpeed: old2?.bulletSpeed,
+          cooldownMax: old2?.cooldownMax,
+          reloadDuration: old2?.reloadDuration,
+          doubleDamageChance: old2?.doubleDamageChance,
+          playerDashCooldownMax: old2?.playerDashCooldownMax,
+          playerDashCooldown: old2?.playerDashCooldown
+        }
+      ));
+    }
+    state.pendingStageShield = 0;
+  }
+
+  function respawnPlayer(controlType) {
+    const old = players.find(p => p.controlType === controlType);
+    if (!old || old.lives < 0 || state.screen !== "playing") return;
+
+    const nextAmmo = Math.min(
+      old.ammoCap,
+      Math.max(8, old.ammo || 0)
+    );
+    const newPlayer = createPlayer(controlType, old.lives, old.ammoCap, nextAmmo);
+    newPlayer.bulletSpeed = old.bulletSpeed;
+    newPlayer.cooldownMax = old.cooldownMax;
+    newPlayer.reloadDuration = old.reloadDuration;
+    newPlayer.doubleDamageChance = old.doubleDamageChance;
+    newPlayer.playerDashCooldownMax = old.playerDashCooldownMax;
+    newPlayer.playerDashCooldown = old.playerDashCooldown;
+    const index = players.findIndex(p => p.controlType === controlType);
+
+    if (index >= 0) players[index] = newPlayer;
+  }
+
+  function onPlayerDead(player) {
+    player.lives--;
+
+    if (state.mode === 2 && player.lives >= 0) {
+      state.downedPlayers.push({
+        controlType: player.controlType,
+        x: player.x,
+        y: player.y,
+        downedTimer: DOWNED_DURATION,
+        reviveProgress: 0
+      });
+    } else if (player.lives >= 0) {
+      setTimeout(() => {
+        respawnPlayer(player.controlType);
+      }, 700);
+    }
+
+    const canContinue = players.some(p => p.alive || p.lives >= 0) || state.downedPlayers.length > 0;
+    if (!canContinue) endGame("result.allDown");
+  }
+  function findDownedEntry(controlType) {
+    return state.downedPlayers.find(entry => entry.controlType === controlType) || null;
+  }
+  function removeDownedEntry(controlType) {
+    const idx = state.downedPlayers.findIndex(entry => entry.controlType === controlType);
+    if (idx >= 0) state.downedPlayers.splice(idx, 1);
+  }
+  function revivePlayer(controlType, marker) {
+    const old = players.find(p => p.controlType === controlType);
+    if (!old || old.lives < 0) return;
+    const ammo = Math.max(6, Math.ceil(old.ammoCap * REVIVE_AMMO_RATIO));
+    const revived = createPlayer(controlType, old.lives, old.ammoCap, Math.min(old.ammoCap, ammo), {
+      bulletSpeed: old.bulletSpeed,
+      cooldownMax: old.cooldownMax,
+      reloadDuration: old.reloadDuration,
+      doubleDamageChance: old.doubleDamageChance,
+      playerDashCooldownMax: old.playerDashCooldownMax,
+      playerDashCooldown: old.playerDashCooldown,
+      spawnShield: REVIVE_INVULN
+    });
+    revived.x = clamp(marker.x, TILE + 2, GAME_W - TILE - revived.w);
+    revived.y = clamp(marker.y, TILE + 2, BASE_H - TILE * 3 - revived.h);
+    revived.hp = 1;
+    revived.maxHp = 1;
+    revived.spawnShield = REVIVE_INVULN;
+    revived.invulnFrames = Math.max(revived.invulnFrames, REVIVE_INVULN);
+    revived.isReloading = false;
+    revived.reloadTimer = 0;
+    const index = players.findIndex(p => p.controlType === controlType);
+    if (index >= 0) players[index] = revived;
+    removeDownedEntry(controlType);
+  }
+  function attemptReviveTeammate(rescuer) {
+    if (!rescuer?.alive) return;
+    const self = rescuer.getRect();
+    const nearby = state.downedPlayers.find(entry =>
+      Math.abs((entry.x + 12) - (self.x + self.w / 2)) <= 30 &&
+      Math.abs((entry.y + 12) - (self.y + self.h / 2)) <= 30
+    );
+    for (const entry of state.downedPlayers) {
+      if (entry !== nearby) entry.reviveProgress = 0;
+    }
+    if (!nearby) return;
+    nearby.reviveProgress = Math.min(REVIVE_FRAMES, nearby.reviveProgress + 1);
+    if (nearby.reviveProgress >= REVIVE_FRAMES) {
+      revivePlayer(nearby.controlType, nearby);
+    }
+  }
+  function updateDownedPlayers() {
+    for (let i = state.downedPlayers.length - 1; i >= 0; i--) {
+      const entry = state.downedPlayers[i];
+      entry.downedTimer--;
+      if (entry.downedTimer <= 0) {
+        state.downedPlayers.splice(i, 1);
+      }
+    }
+    const alivePlayers = players.filter(p => p.alive);
+    for (const player of alivePlayers) attemptReviveTeammate(player);
+  }
+  function createEliteDescriptor(type) {
+    if (type === "shield") return { badge: "#7dd3fc", bulletColor: null };
+    if (type === "rapid") return { badge: "#fb7185", bulletColor: "#ff7a7a" };
+    if (type === "supply") return { badge: "#facc15", bulletColor: null };
+    return { badge: "#86efac", bulletColor: null };
+  }
+  function applyEliteToEnemy(enemy, eliteType) {
+    if (!enemy || !eliteType || enemy.enemyType.startsWith("boss")) return enemy;
+    enemy.eliteType = eliteType;
+    enemy.scoreValue += 90;
+    const descriptor = createEliteDescriptor(eliteType);
+    enemy.eliteBadgeColor = descriptor.badge;
+    if (descriptor.bulletColor) enemy.bulletColor = descriptor.bulletColor;
+
+    if (eliteType === "shield") {
+      enemy.eliteShieldCharges = 1;
+      enemy.spawnShield = Math.max(enemy.spawnShield, 30);
+    } else if (eliteType === "rapid") {
+      enemy.cooldownMax = Math.max(18, Math.floor(enemy.cooldownMax * 0.68));
+    } else if (eliteType === "supply") {
+      enemy.hp += 1;
+      enemy.maxHp += 1;
+    } else if (eliteType === "ambush") {
+      enemy.prefersGrass = true;
+      enemy.speed += 0.05;
+    }
+    return enemy;
+  }
+  function maybeAssignEliteType(type, isBossStage) {
+    if (type.startsWith("boss")) return "";
+    if (isBossStage && hasBossQueuedOrAlive()) {
+      if (Math.random() >= Math.max(0.04, getEliteSpawnChance(state.stage) * 0.55)) return "";
+    } else if (Math.random() >= getEliteSpawnChance(state.stage)) {
+      return "";
+    }
+    return pickEliteType();
+  }
+
+  function createEnemyByType(x, y, type) {
+    const cfg = getStageConfig(state.stage);
+
+    if (type === "bossShield") {
+      return new Tank(x, y, {
+        isPlayer: false,
+        enemyType: "bossShield",
+        color: COLORS.bossShield,
+        speed: Math.min(0.86 + state.stage * 0.02, 1.0),
+        bulletSpeed: Math.min(3.0 + state.stage * 0.06, 4.6),
+        cooldownMax: 26,
+        hp: cfg.bossHp + 2,
+        scoreValue: 1000,
+        spawnShield: 100
+      });
+    }
+
+    if (type === "bossBurst") {
+      return new Tank(x, y, {
+        isPlayer: false,
+        enemyType: "bossBurst",
+        color: COLORS.bossBurst,
+        speed: Math.min(0.82 + state.stage * 0.02, 0.96),
+        bulletSpeed: Math.min(3.1 + state.stage * 0.07, 4.8),
+        cooldownMax: 28,
+        hp: cfg.bossHp,
+        scoreValue: 1000,
+        spawnShield: 90
+      });
+    }
+
+    if (type === "bossDash") {
+      return new Tank(x, y, {
+        isPlayer: false,
+        enemyType: "bossDash",
+        color: COLORS.bossDash,
+        speed: Math.min(0.92 + state.stage * 0.02, 1.06),
+        bulletSpeed: Math.min(2.9 + state.stage * 0.07, 4.6),
+        cooldownMax: 30,
+        hp: cfg.bossHp,
+        scoreValue: 1000,
+        spawnShield: 80
+      });
+    }
+
+    if (type === "fast") {
+      return new Tank(x, y, {
+        isPlayer: false,
+        enemyType: "fast",
+        color: COLORS.fast,
+        speed: cfg.enemySpeedBase + 0.18,
+        bulletSpeed: cfg.enemyBulletSpeed + 0.2,
+        cooldownMax: 42,
+        hp: 1,
+        scoreValue: 150,
+        spawnShield: 80
+      });
+    }
+
+    if (type === "heavy") {
+      return new Tank(x, y, {
+        isPlayer: false,
+        enemyType: "heavy",
+        color: COLORS.heavy,
+        speed: Math.max(0.35, cfg.enemySpeedBase - 0.08),
+        bulletSpeed: cfg.enemyBulletSpeed,
+        cooldownMax: 54,
+        hp: 3,
+        scoreValue: 300,
+        spawnShield: 80
+      });
+    }
+
+    if (type === "shooter") {
+      return new Tank(x, y, {
+        isPlayer: false,
+        enemyType: "shooter",
+        color: COLORS.shooter,
+        speed: cfg.enemySpeedBase,
+        bulletSpeed: cfg.enemyBulletSpeed + 0.5,
+        cooldownMax: 32,
+        hp: 1,
+        scoreValue: 220,
+        spawnShield: 80
+      });
+    }
+
+    return new Tank(x, y, {
+      isPlayer: false,
+      enemyType: "normal",
+      color: COLORS.enemy,
+      speed: cfg.enemySpeedBase,
+      bulletSpeed: cfg.enemyBulletSpeed,
+      cooldownMax: 42,
+      hp: 1,
+      scoreValue: 100,
+      spawnShield: 80
+    });
+  }
+
+  function createEnemyByTypeWrapper(x, y, type, eliteType = "") {
+    return applyEliteToEnemy(createEnemyByType(x, y, type), eliteType);
+  }
+
+  function spawnEnemyNow(x, y, type, eliteType = "") {
+    enemies.push(createEnemyByTypeWrapper(x, y, type, eliteType));
+  }
+
+  function randomNormalEnemyType() {
+    const r = Math.random();
+    if (getDifficultyMode() === "easy") {
+      if (r < 0.12) return "fast";
+      if (r < 0.24) return "heavy";
+      if (r < 0.36) return "shooter";
+      return "normal";
+    }
+    if (getDifficultyMode() === "hard") {
+      if (r < 0.22) return "fast";
+      if (r < 0.4) return "heavy";
+      if (r < 0.62) return "shooter";
+      return "normal";
+    }
+    if (r < 0.18) return "fast";
+    if (r < 0.33) return "heavy";
+    if (r < 0.48) return "shooter";
+    return "normal";
+  }
+
+  function hasBossQueuedOrAlive() {
+    return enemies.some(e => e.alive && e.enemyType.startsWith("boss")) ||
+           spawnEffects.some(s => s.type && s.type.startsWith("boss"));
+  }
+
+  function randomEnemyType() {
+    const cfg = getStageConfig(state.stage);
+    if (cfg.isBossStage) {
+      return hasBossQueuedOrAlive() ? randomNormalEnemyType() : getBossType(state.stage);
+    }
+    return randomNormalEnemyType();
+  }
+
+  function requestEnemySpawn() {
+    const cfg = getStageConfig(state.stage);
+    if (state.enemyToSpawn <= 0) return;
+    if (enemies.filter(e => e.alive).length >= cfg.maxOnField) return;
+    if (spawnEffects.length >= 2) return;
+
+    const spawnPoints = [
+      { x: TILE * 2, y: TILE * 1.5 },
+      { x: GAME_W / 2 - 14, y: TILE * 1.5 },
+      { x: GAME_W - TILE * 2 - 28, y: TILE * 1.5 }
+    ];
+
+    const valid = spawnPoints.filter(pos => {
+      const rect = { x: pos.x, y: pos.y, w: 28, h: 28 };
+      const sc = Math.floor(rect.x / TILE);
+      const ec = Math.floor((rect.x + rect.w - 1) / TILE);
+      const sr = Math.floor(rect.y / TILE);
+      const er = Math.floor((rect.y + rect.h - 1) / TILE);
+
+      for (let r = sr; r <= er; r++) {
+        for (let c = sc; c <= ec; c++) {
+          if (tankBlocked(map[r]?.[c])) return false;
+        }
+      }
+      for (const t of [...players, ...enemies]) {
+        if (t.alive && rectsOverlap(rect, t.getRect())) return false;
+      }
+      for (const s of spawnEffects) {
+        if (rectsOverlap(rect, { x: s.x, y: s.y, w: 28, h: 28 })) return false;
+      }
+      return true;
+    });
+
+    if (!valid.length) return;
+
+    const pos = pick(valid);
+    const type = randomEnemyType();
+    const eliteType = maybeAssignEliteType(type, cfg.isBossStage);
+    spawnEffects.push(new SpawnEffect(pos.x, pos.y, type, eliteType));
+    state.enemyToSpawn--;
+
+    if (type.startsWith("boss")) {
+      state.bossIntroTimer = 170;
+      state.bossIntroText = `${getBossName(type)} · ${getBossMechanicName(type)}`;
+    }
+  }
+
+  function randomValidDropPosition() {
+    for (let i = 0; i < 120; i++) {
+      const row = randint(2, ROWS - 4);
+      const col = randint(2, COLS - 3);
+      if (dropBlocked(map[row][col])) continue;
+      if (Math.abs(row - (ROWS - 3)) <= 1 && Math.abs(col - eagle.col) <= 2) continue;
+      if (Math.abs(row - 13) <= 1 && Math.abs(col - 13) <= 1) continue;
+      return { x: col * TILE + 4, y: row * TILE + 4 };
+    }
+    return null;
+  }
+
+  function pickSupportPowerup() {
+    return isSinglePlayerMode()
+      ? pick(["life", "ammo", "ammo", "shield", "star"])
+      : pick(["life", "ammo", "shield", "star"]);
+  }
+
+  function pickPityPowerup() {
+    return isSinglePlayerMode()
+      ? pick(["life", "ammo", "ammo", "life"])
+      : pick(["life", "ammo"]);
+  }
+
+  function pickRandomPowerupType() {
+    return isSinglePlayerMode()
+      ? pick(["shield", "bomb", "freeze", "star", "life", "ammo", "ammo", "life", "shield"])
+      : pick(["shield", "bomb", "freeze", "star", "life", "ammo", "shield"]);
+  }
+
+  function spawnPowerup(forcedType = null) {
+    if (powerups.length >= 2) return;
+    const pos = randomValidDropPosition();
+    if (!pos) return;
+    const type = forcedType || pickRandomPowerupType();
+    if (type === "life" || type === "ammo") {
+      state.stageHadSupportDrop = true;
+      state.supportDryStages = 0;
+    }
+    powerups.push(new Powerup(type, pos.x, pos.y));
+  }
+
+  function applyPowerup(type, collector = null) {
+    if (type === "shield") {
+      protectBaseWithSteel();
+    } else if (type === "bomb") {
+      const source = collector && collector.alive ? collector : players.find(p => p.alive);
+      if (source) triggerBombBurst();
+    } else if (type === "freeze") {
+      state.freezeTimer = 360;
+    } else if (type === "star") {
+      for (const p of players) if (p.alive) p.spawnShield = Math.max(p.spawnShield, PLAYER_STAR_INVULN);
+    } else if (type === "life") {
+      if (state.mode === 1) {
+        const p = players.find(x => x.controlType === 1);
+        if (p) addLives(p, 1);
+      } else {
+        const p1 = players.find(x => x.controlType === 1);
+        const p2 = players.find(x => x.controlType === 2);
+        const target = (!p1 || p1.lives <= (p2?.lives ?? 99)) ? p1 : p2;
+        if (target) addLives(target, 1);
+      }
+    } else if (type === "ammo") {
+      for (const p of players) {
+        if (p.alive) {
+          p.ammoCap = Math.min(MAX_AMMO_CAP, p.ammoCap + 1);
+          p.isReloading = false;
+          p.reloadTimer = 0;
+          p.ammo = p.ammoCap;
+        }
+      }
+    }
+  }
+
+  let rewardChoices = [];
+
+  function buildRewardChoices() {
+    const pool = [
+      {
+        id: "life1",
+        text: t("reward.life1"),
+        apply() {
+          for (const p of players) addLives(p, 1);
+        }
+      },
+      {
+        id: "life2",
+        text: t("reward.life2"),
+        apply() {
+          const sorted = [...players].sort((a, b) => a.lives - b.lives);
+          if (sorted[0]) addLives(sorted[0], 2);
+        }
+      },
+      {
+        id: "baseShield",
+        text: t("reward.baseShield"),
+        apply() {
+          state.pendingBaseBrickArmor += 3;
+        }
+      },
+      {
+        id: "ammoCapUp",
+        text: t("reward.ammoCapUp"),
+        apply() {
+          for (const p of players) {
+            p.ammoCap = Math.min(MAX_AMMO_CAP, p.ammoCap + 10);
+            p.ammo = p.ammoCap;
+            p.isReloading = false;
+            p.reloadTimer = 0;
+          }
+        }
+      },
+      {
+        id: "bulletUp",
+        text: t("reward.bulletUp"),
+        apply() {
+          for (const p of players) p.bulletSpeed = Math.min(p.bulletSpeed + 1, 7);
+        }
+      },
+      {
+        id: "doubleDamage",
+        text: t("reward.doubleDamage"),
+        apply() {
+          for (const p of players) p.doubleDamageChance = Math.min(0.8, p.doubleDamageChance + 0.1);
+        }
+      },
+      {
+        id: "reloadFaster",
+        text: t("reward.reloadFaster"),
+        apply() {
+          for (const p of players) {
+            p.reloadDuration = Math.max(MIN_RELOAD_TIME, p.reloadDuration - 400);
+            if (p.isReloading) p.reloadTimer = Math.min(p.reloadTimer, p.reloadDuration);
+          }
+        }
+      },
+      {
+        id: "dashFaster",
+        text: t("reward.dashFaster"),
+        apply() {
+          for (const p of players) {
+            p.playerDashCooldownMax = Math.max(MIN_PLAYER_DASH_COOLDOWN, p.playerDashCooldownMax - 36);
+            p.playerDashCooldown = Math.min(p.playerDashCooldown, p.playerDashCooldownMax);
+          }
+        }
+      },
+      {
+        id: "lifeTransfer",
+        text: t("reward.lifeTransfer"),
+        apply() {
+          if (players.length < 2) {
+            if (players[0]) addLives(players[0], randint(2,4));
+            return;
+          }
+          const p1 = players[0], p2 = players[1];
+          let high = p1, low = p2;
+          if (p2.lives > p1.lives) { high = p2; low = p1; }
+          if (high.lives > 0) high.lives -= 1;
+          addLives(low, randint(2,4));
+        }
+      }
+    ];
+
+    const choiceCount = getRewardCardCount();
+    rewardChoices = [...pool].sort(() => Math.random() - 0.5).slice(0, choiceCount);
+    state.rewardChoices = rewardChoices;
+  }
+  function buildRelicChoices() {
+    const pool = getRelicPool().filter(item => !isOwnedRelic(item.id));
+    state.relicChoices = [...pool].sort(() => Math.random() - 0.5).slice(0, Math.min(4, pool.length));
+  }
+
+  function rewardAfterStage() {
+    const cfg = getStageConfig(state.stage);
+    if (isOwnedRelic("fieldRepair")) {
+      state.pendingBaseBrickArmor += 2;
+    }
+    if (!cfg.isBossStage) {
+      state.supportDryStages = state.stageHadSupportDrop ? 0 : Math.min(state.supportDryStages + 1, 3);
+      for (const p of players) addLives(p, 1);
+      return false;
+    }
+    state.pendingBossSupply = pickSupportPowerup();
+    state.relicOfferPending = true;
+    buildRewardChoices();
+    state.screen = "reward";
+    return true;
+  }
+
+  function applyRewardChoice(index) {
+    const choice = rewardChoices[index];
+    if (!choice) return;
+    choice.apply();
+    if (state.relicOfferPending) {
+      buildRelicChoices();
+      if (state.relicChoices.length > 0) {
+        state.screen = "relic";
+        return;
+      }
+      state.relicOfferPending = false;
+    }
+    state.stage++;
+    buildStage();
+  }
+  function applyRelicChoice(index) {
+    const choice = state.relicChoices[index];
+    if (!choice) return;
+    if (!isOwnedRelic(choice.id)) {
+      state.ownedRelics.push(choice.id);
+      choice.apply();
+    }
+    state.relicOfferPending = false;
+    state.stage++;
+    buildStage();
+  }
+
+  function setStageIntro(cfg) {
+    state.stageIntroTimer = 150;
+    if (cfg.isBossStage) {
+      const bossType = getBossType(state.stage);
+      const bossHp = bossType === "bossShield" ? cfg.bossHp + 2 : cfg.bossHp;
+      state.stageIntroTitle = t("stageIntro.bossTitle", { stage: state.stage });
+      state.stageIntroText = t("stageIntro.bossText", { boss: getBossName(bossType), hp: bossHp, minions: cfg.bossMinions, map: getMapLayoutName(state.stage) });
+      return;
+    }
+    state.stageIntroTitle = t("stageIntro.normalTitle", { stage: state.stage });
+    state.stageIntroText = t("stageIntro.normalText", { enemyCount: cfg.enemyCount, maxOnField: cfg.maxOnField, map: getMapLayoutName(state.stage) });
+  }
+
+  function startGame() {
+    paused = false;
+    clearInputState();
+    resetBaseBrickMaxHP();
+    state.mode = state.menuMode;
+    state.difficulty = ["easy", "normal", "hard"][state.menuDifficulty];
+    state.stage = state.menuStage;
+    state.score = 0;
+    state.freezeTimer = 0;
+    state.baseShieldTimer = 0;
+    state.pendingStageShield = 0;
+    state.pendingExtraDrops = 0;
+    state.pendingBaseBrickArmor = 0;
+    state.baseShieldReinforcePending = 0;
+    state.bossIntroTimer = 0;
+    state.bossIntroText = "";
+    state.stageIntroTimer = 0;
+    state.stageIntroTitle = "";
+    state.stageIntroText = "";
+    state.supportDryStages = 0;
+    state.stageHadSupportDrop = false;
+    state.pendingBossSupply = "";
+    state.rewardChoices = [];
+    state.relicChoices = [];
+    state.ownedRelics = [];
+    state.downedPlayers = [];
+    state.relicOfferPending = false;
+    state.runStartTime = Date.now();
+    state.runRecorded = false;
+    state.screen = "playing";
+    eagle.alive = true;
+    spawnPlayersFresh();
+    buildStage();
+  }
+
+  function buildStage() {
+    const cfg = getStageConfig(state.stage);
+    state.screen = "playing";
+    state.gameOverText = "";
+    paused = false;
+    clearInputState();
+    eagle.alive = true;
+
+    buildMap();
+    applyPendingBaseBrickArmor();
+
+    enemies.length = 0;
+    bullets.length = 0;
+    powerups.length = 0;
+    spawnEffects.length = 0;
+    hitEffects.length = 0;
+    explosions.length = 0;
+    floatTexts.length = 0;
+    state.downedPlayers = [];
+
+    state.enemyToSpawn = cfg.enemyCount;
+    state.enemySpawnCooldown = 40;
+    state.stageClearTimer = 0;
+    state.freezeTimer = 0;
+    state.baseShieldTimer = 0;
+    state.baseShieldReinforcePending = 0;
+    state.powerupCooldown = cfg.powerupInitialCooldown;
+    state.stageHadSupportDrop = false;
+
+    rebuildPlayersKeepState();
+    setStageIntro(cfg);
+
+    if (cfg.isBossStage) {
+      state.bossIntroTimer = 180;
+      state.bossIntroText = `${getBossName(getBossType(state.stage))} · ${getBossMechanicName(getBossType(state.stage))}`;
+    }
+
+    if (state.pendingExtraDrops > 0) {
+      for (let i = 0; i < state.pendingExtraDrops; i++) spawnPowerup();
+      state.pendingExtraDrops = 0;
+    }
+    if (!cfg.isBossStage && state.supportDryStages >= 2) {
+      spawnPowerup(pickPityPowerup());
+    }
+    if (state.pendingBossSupply) {
+      spawnPowerup(state.pendingBossSupply);
+      state.pendingBossSupply = "";
+    }
+
+    state.unlockedStage = Math.max(state.unlockedStage, state.stage);
+    saveProgress();
+  }
+
+  function endGame(text) {
+    state.screen = "gameover";
+    state.gameOverText = text;
+    paused = false;
+    clearInputState();
+
+    state.bestScore = Math.max(state.bestScore, state.score);
+    state.unlockedStage = Math.max(state.unlockedStage, state.stage);
+    recordRunHistory(text);
+    saveProgress();
+  }
+
+  function tryStageClear() {
+    if (state.enemyToSpawn === 0 && enemies.filter(e => e.alive).length === 0 && spawnEffects.length === 0) {
+      if (rewardAfterStage()) return;
+      state.screen = "stageclear";
+      state.stageClearTimer = 180;
+      state.unlockedStage = Math.max(state.unlockedStage, state.stage + 1);
+      state.bestScore = Math.max(state.bestScore, state.score);
+      saveProgress();
+    }
+  }
+
+  function updatePlaying() {
+    const cfg = getStageConfig(state.stage);
+
+    if (state.enemySpawnCooldown > 0) state.enemySpawnCooldown--;
+    else {
+      requestEnemySpawn();
+      state.enemySpawnCooldown = cfg.enemySpawnInterval;
+    }
+
+    if (state.bossIntroTimer > 0) state.bossIntroTimer--;
+    if (state.stageIntroTimer > 0) state.stageIntroTimer--;
+    if (state.baseShieldTimer > 0) {
+      state.baseShieldTimer--;
+      if (state.baseShieldTimer === 0) restoreBaseShield();
+    }
+    if (state.freezeTimer > 0) state.freezeTimer--;
+    if (state.shake > 0) {
+      state.shake *= 0.82;
+      if (Math.abs(state.shake) < 0.2) state.shake = 0;
+    }
+
+    if (state.powerupCooldown > 0) state.powerupCooldown--;
+    else {
+      if (Math.random() < cfg.powerupChance && !cfg.isBossStage) spawnPowerup();
+      state.powerupCooldown = cfg.powerupCooldown;
+    }
+
+    for (const p of players) p.update();
+    for (const e of enemies) e.update();
+    for (const b of bullets) b.update();
+    resolveBulletClashes();
+    for (const pw of powerups) pw.update();
+    for (const sp of spawnEffects) sp.update();
+    for (const hf of hitEffects) hf.update();
+    for (const ex of explosions) ex.update();
+    for (const ft of floatTexts) ft.update();
+    updateDownedPlayers();
+
+    for (let i = bullets.length - 1; i >= 0; i--) if (!bullets[i].alive) bullets.splice(i, 1);
+    for (let i = enemies.length - 1; i >= 0; i--) if (!enemies[i].alive) enemies.splice(i, 1);
+    for (let i = powerups.length - 1; i >= 0; i--) if (powerups[i].dead) powerups.splice(i, 1);
+    for (let i = spawnEffects.length - 1; i >= 0; i--) if (spawnEffects[i].dead) spawnEffects.splice(i, 1);
+    for (let i = hitEffects.length - 1; i >= 0; i--) if (hitEffects[i].dead) hitEffects.splice(i, 1);
+    for (let i = explosions.length - 1; i >= 0; i--) if (explosions[i].dead) explosions.splice(i, 1);
+    for (let i = floatTexts.length - 1; i >= 0; i--) if (floatTexts[i].dead) floatTexts.splice(i, 1);
+
+    if (!eagle.alive) {
+        endGame("result.baseDestroyed");
+      return;
+    }
+
+    const canContinue = players.some(p => p.alive || p.lives >= 0) || state.downedPlayers.length > 0;
+    if (!canContinue) {
+        endGame("result.allDown");
+      return;
+    }
+
+    tryStageClear();
+  }
+
+  function update() {
+    state.frame++;
+    if (state.screen === "playing") {
+      if (!paused) updatePlaying();
+    } else if (state.screen === "stageclear") {
+      state.stageClearTimer--;
+      if (state.stageClearTimer <= 0) {
+        state.stage++;
+        buildStage();
+      }
+    }
+  }
+
+  function drawTile(x, y, tile, r, c) {
+    if (tile === BRICK) {
+      ctx.fillStyle = COLORS.brick;
+      ctx.fillRect(x, y, TILE, TILE);
+      ctx.fillStyle = COLORS.brickDark;
+      ctx.fillRect(x + 4, y + 4, 10, 10);
+      ctx.fillRect(x + 18, y + 4, 10, 10);
+      ctx.fillRect(x + 4, y + 18, 10, 10);
+      ctx.fillRect(x + 18, y + 18, 10, 10);
+      if (isBaseDefenseCell(r, c)) {
+        const hp = Math.max(1, brickArmorHP[r][c] || 1);
+        ctx.save();
+        ctx.strokeStyle = hp > 1 ? COLORS.shield : "rgba(255,255,255,0.34)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x + 3, y + 3, TILE - 6, TILE - 6);
+        ctx.fillStyle = "#fff";
+        ctx.font = hp >= 10 ? "bold 12px Arial" : "bold 14px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(String(hp), x + TILE / 2, y + TILE / 2);
+        ctx.restore();
+      }
+    } else if (tile === STEEL) {
+      ctx.fillStyle = COLORS.steel;
+      ctx.fillRect(x, y, TILE, TILE);
+    } else if (tile === WATER) {
+      ctx.fillStyle = COLORS.water;
+      ctx.fillRect(x, y, TILE, TILE);
+    } else if (tile === GRASS) {
+      ctx.fillStyle = COLORS.grass;
+      ctx.fillRect(x, y, TILE, TILE);
+    } else if (tile === OIL) {
+      ctx.fillStyle = "#7c2d12";
+      ctx.fillRect(x + 4, y + 2, TILE - 8, TILE - 4);
+      ctx.strokeStyle = "#fed7aa";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x + 4, y + 2, TILE - 8, TILE - 4);
+      ctx.fillStyle = "#f59e0b";
+      ctx.fillRect(x + 9, y + 7, TILE - 18, 4);
+      ctx.fillRect(x + 9, y + 21, TILE - 18, 4);
+      ctx.save();
+      ctx.fillStyle = "#fef3c7";
+      ctx.font = "bold 8px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("OIL", x + TILE / 2, y + TILE / 2);
+      ctx.restore();
+    } else if (tile === MUD) {
+      ctx.fillStyle = "#4b3520";
+      ctx.fillRect(x, y, TILE, TILE);
+      ctx.fillStyle = "#6b4d2f";
+      ctx.fillRect(x + 3, y + 6, TILE - 10, 7);
+      ctx.fillRect(x + 8, y + 18, TILE - 12, 6);
+    } else if (tile === HARD) {
+      ctx.fillStyle = COLORS.hard;
+      ctx.fillRect(x, y, TILE, TILE);
+      ctx.save();
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 16px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(String(hardWallHP[r][c]), x + TILE / 2, y + TILE / 2);
+      ctx.restore();
+    }
+  }
+
+  function drawMap() {
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        drawTile(c * TILE, r * TILE, map[r][c], r, c);
+      }
+    }
+  }
+
+  function drawEagle() {
+    const x = eagle.col * TILE;
+    const y = eagle.row * TILE;
+
+    ctx.fillStyle = eagle.alive ? COLORS.eagle : COLORS.eagleDead;
+    ctx.fillRect(x + 4, y + 4, 24, 24);
+    ctx.fillStyle = "#111";
+    ctx.fillRect(x + 12, y + 8, 8, 16);
+    ctx.fillRect(x + 8, y + 12, 16, 8);
+
+    if (state.baseShieldTimer > 0 && Math.floor(state.frame / 6) % 2 === 0) {
+      ctx.strokeStyle = COLORS.shield;
+      ctx.lineWidth = 4;
+      ctx.strokeRect(x - 8, y - 8, TILE + 16, TILE + 16);
+    }
+  }
+
+  function drawBossPanel() {
+    const boss = enemies.find(e => e.alive && e.enemyType.startsWith("boss"));
+
+    ctx.fillStyle = COLORS.panel;
+    ctx.fillRect(GAME_W + 8, 20, SIDE_W - 16, 210);
+    ctx.strokeStyle = "#fff";
+    ctx.strokeRect(GAME_W + 8, 20, SIDE_W - 16, 210);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "22px Arial";
+    ctx.fillText(t("boss.title"), GAME_W + 76, 48);
+
+    if (!boss) {
+      ctx.font = "16px Arial";
+      ctx.fillText(t("boss.none"), GAME_W + 60, 96);
+      return;
+    }
+
+    const rate = Math.max(0, boss.hp / boss.maxHp);
+
+    ctx.font = "18px Arial";
+    ctx.fillText(getBossName(boss.enemyType), GAME_W + 30, 82);
+
+    ctx.fillStyle = "#555";
+    ctx.fillRect(GAME_W + 18, 98, 176, 14);
+    ctx.fillStyle = "#ef4444";
+    ctx.fillRect(GAME_W + 18, 98, 176 * rate, 14);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "14px Arial";
+    ctx.fillText(t("boss.hp", { hp: boss.hp, max: boss.maxHp }), GAME_W + 72, 130);
+    ctx.fillText(t("boss.mechanic", { value: getBossMechanicName(boss.enemyType) }), GAME_W + 28, 158);
+    ctx.fillText(t("boss.phase", { value: boss.phase2 ? t("boss.phase2") : t("boss.phase1") }), GAME_W + 36, 184);
+    if (boss.bossCastTimer > 0) {
+      ctx.fillStyle = "#facc15";
+      ctx.font = "13px Arial";
+      ctx.fillText(t("boss.warning", { value: getBossCastName(boss) }), GAME_W + 22, 208);
+    }
+  }
+
+  function formatCritChance(player) {
+    return `${Math.round(clamp(player?.doubleDamageChance || 0, 0, 1) * 100)}%`;
+  }
+
+  function formatDashStatus(player) {
+    if (!player) return "-";
+    if (player.playerDashFrames > 0) return t("dash.active");
+    if (player.playerDashCooldown <= 0) return t("dash.ready");
+    return `${(player.playerDashCooldown / 60).toFixed(1)}s`;
+  }
+
+  function drawInvulnGauge(x, y, player, color, label) {
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.font = "16px Arial";
+    ctx.fillText(`${label}${t("hud.shieldSuffix")}`, x, y);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y + 10, 86, 12);
+
+    let ratio = 0;
+    let fill = color;
+    if (player.spawnShield > 0) {
+      ratio = clamp(player.spawnShield / PLAYER_STAR_INVULN, 0, 1);
+      fill = "#facc15";
+    } else if (player.invulnFrames > 0) {
+      ratio = clamp(player.invulnFrames / PLAYER_DASH_INVULN, 0, 1);
+      fill = COLORS.shield;
+    }
+
+    if (ratio > 0) {
+      ctx.fillStyle = fill;
+      ctx.fillRect(x + 2, y + 12, 82 * ratio, 8);
+    }
+
+    ctx.beginPath();
+    ctx.arc(x - 16, y + 16, 9, 0, Math.PI * 2);
+    ctx.stroke();
+    if (ratio > 0) {
+      ctx.fillStyle = fill;
+      ctx.beginPath();
+      ctx.arc(x - 16, y + 16, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawAmmoStatus(x, y, player, color, label) {
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.font = "16px Arial";
+    ctx.fillText(`${label} ${t("hud.ammo")}`, x, y);
+    const magazineX = x - 18;
+    const magazineY = y + 10;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(magazineX, magazineY, 12, 26);
+    ctx.fillRect(magazineX + 3, magazineY - 4, 6, 4);
+
+    const ratio = player.ammoCap > 0 ? clamp(player.ammo / player.ammoCap, 0, 1) : 0;
+    ctx.strokeRect(x, y + 12, 86, 12);
+    if (ratio > 0) {
+      ctx.fillRect(x + 2, y + 14, 82 * ratio, 8);
+    }
+
+    if (player.isReloading || player.ammo <= 0) {
+      const flash = Math.floor(state.frame / 12) % 2 === 0;
+      ctx.fillStyle = flash ? "#fb7185" : "#fecdd3";
+      ctx.fillText(player.isReloading ? t("effects.reloading") : t("effects.ammoEmpty"), x + 98, y + 18);
+    }
+    ctx.restore();
+  }
+
+  function getInvulnRingColor(player, ratio) {
+    if (player.spawnShield <= 0) return COLORS.shield;
+    if (ratio > 0.5) return "#facc15";
+    if (ratio > 0.2) return "#fb923c";
+    return "#fb7185";
+  }
+
+  function drawPlayerTankStatusIcons(player) {
+    if (!player?.alive) return;
+
+    const ammoRatio = player.ammoCap > 0 ? clamp(player.ammo / player.ammoCap, 0, 1) : 0;
+    const shieldRatio = player.spawnShield > 0
+      ? clamp(player.spawnShield / PLAYER_STAR_INVULN, 0, 1)
+      : clamp(player.invulnFrames / PLAYER_DASH_INVULN, 0, 1);
+    const shieldColor = getInvulnRingColor(player, shieldRatio);
+    const iconY = player.y - 12;
+    const ammoX = player.x + player.w - 2;
+
+    ctx.save();
+
+    if (shieldRatio > 0) {
+      const cx = player.x + player.w / 2;
+      const cy = player.y + player.h / 2;
+      const radius = Math.max(player.w, player.h) / 2 + 7;
+      const flash = shieldRatio <= 0.2 && Math.floor(state.frame / 6) % 2 === 0;
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgba(255,255,255,0.14)";
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = flash ? 0.55 : 0.96;
+      ctx.strokeStyle = shieldColor;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * shieldRatio);
+      ctx.stroke();
+      if (player.spawnShield > 0) {
+        ctx.globalAlpha = flash ? 0.12 : 0.2;
+        ctx.fillStyle = shieldColor;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius - 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.strokeStyle = player.color;
+    ctx.strokeRect(ammoX, iconY, 10, 14);
+    ctx.fillStyle = player.color;
+    ctx.fillRect(ammoX + 3, iconY - 3, 4, 3);
+    if (ammoRatio > 0) {
+      const fillH = Math.max(2, Math.round(10 * ammoRatio));
+      ctx.fillRect(ammoX + 2, iconY + 12 - fillH, 6, fillH);
+    }
+
+    if (player.ammo <= 0 || player.isReloading) {
+      ctx.strokeStyle = "#fb7185";
+      ctx.beginPath();
+      ctx.moveTo(ammoX - 2, iconY + 16);
+      ctx.lineTo(ammoX + 12, iconY - 2);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  function getSettingsEntries() {
+    const entries = [
+      { type: "command", label: t("settings.restoreDefaults"), hint: t("settings.restoreHint") }
+    ];
+    for (const controlType of [1, 2]) {
+      for (const action of ACTION_ORDER) {
+        entries.push({
+          type: "binding",
+          controlType,
+          action,
+          label: `P${controlType} ${getSettingsActionLabel(action)}`
+        });
+      }
+    }
+    return entries;
+  }
+
+  function drawHUD() {
+    const remaining = state.enemyToSpawn + enemies.filter(e => e.alive).length + spawnEffects.length;
+    const p1 = players.find(p => p.controlType === 1);
+    const p2 = players.find(p => p.controlType === 2);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "18px Arial";
+    ctx.fillText(`${t("hud.stage")}: ${state.stage}`, GAME_W + 16, 256);
+    ctx.fillText(`${t("hud.enemies")}: ${remaining}`, GAME_W + 16, 284);
+    ctx.fillText(`${t("hud.score")}: ${state.score}`, GAME_W + 16, 312);
+    ctx.fillText(`${t("hud.difficulty")}: ${getDifficultyLabelByIndex(state.menuDifficulty)}`, GAME_W + 16, 340);
+
+    ctx.fillStyle = COLORS.p1;
+    if (p1) {
+      ctx.fillText(`P1 ${t("hud.life")}: ${Math.max(p1.lives + 1, 0)}`, GAME_W + 16, 386);
+      ctx.fillText(`P1 ${t("hud.ammo")}: ${p1.ammo}/${p1.ammoCap}`, GAME_W + 16, 414);
+      ctx.fillText(`P1 ${t("hud.crit")}: ${formatCritChance(p1)}`, GAME_W + 16, 442);
+      ctx.fillText(`P1 ${t("hud.dash")}: ${formatDashStatus(p1)}`, GAME_W + 16, 470);
+      if (p1.isReloading) {
+        ctx.fillStyle = "#fff";
+        ctx.fillText(`P1 ${t("hud.reload")}: ${(p1.reloadTimer / 1000).toFixed(1)}s`, GAME_W + 16, 498);
+        ctx.fillStyle = COLORS.p1;
+      }
+    }
+
+    if (state.mode === 1) {
+      ctx.fillStyle = "#facc15";
+      ctx.fillText(t("hud.singleBalance"), GAME_W + 16, 548);
+      ctx.fillText(t("hud.singleBalanceValue"), GAME_W + 16, 576);
+    }
+
+    if (state.mode === 2 && p2) {
+      ctx.fillStyle = COLORS.p2;
+      ctx.fillText(`P2 ${t("hud.life")}: ${Math.max(p2.lives + 1, 0)}`, GAME_W + 16, 522);
+      ctx.fillText(`P2 ${t("hud.ammo")}: ${p2.ammo}/${p2.ammoCap}`, GAME_W + 16, 550);
+      ctx.fillText(`P2 ${t("hud.crit")}: ${formatCritChance(p2)}`, GAME_W + 16, 578);
+      ctx.fillText(`P2 ${t("hud.dash")}: ${formatDashStatus(p2)}`, GAME_W + 16, 606);
+      if (p2.isReloading) {
+        ctx.fillStyle = "#fff";
+        ctx.fillText(`P2 ${t("hud.reload")}: ${(p2.reloadTimer / 1000).toFixed(1)}s`, GAME_W + 16, 634);
+      }
+    }
+
+    const statusBaseY = state.mode === 2 ? 672 : 608;
+
+    if (state.freezeTimer > 0) {
+      ctx.fillStyle = "#7dd3fc";
+      ctx.fillText(t("hud.frozen"), GAME_W + 16, statusBaseY);
+    }
+    if (state.baseShieldTimer > 0) {
+      ctx.fillStyle = COLORS.shield;
+      ctx.fillText(t("hud.baseShield"), GAME_W + 16, statusBaseY + 28);
+    }
+    const downedBaseY = statusBaseY + (state.baseShieldTimer > 0 ? 56 : 28);
+    if (state.downedPlayers.length > 0) {
+      ctx.fillStyle = "#fca5a5";
+      ctx.font = "15px Arial";
+      state.downedPlayers.forEach((entry, index) => {
+        ctx.fillText(`P${entry.controlType} ${t("hud.downed")}: ${(Math.max(0, entry.downedTimer) / 60).toFixed(1)}s`, GAME_W + 16, downedBaseY + index * 22);
+      });
+    }
+
+    ctx.fillStyle = "#aaa";
+    ctx.font = "16px Arial";
+    ctx.fillText(t("hud.controls"), GAME_W + 16, 748);
+    ctx.fillText(`${t("hud.best")}: ${state.bestScore}`, GAME_W + 16, 776);
+    ctx.fillText(`${t("hud.unlocked")}: ${state.unlockedStage}`, GAME_W + 16, 804);
+  }
+  function drawReviveStatus() {
+    for (const entry of state.downedPlayers) {
+      const cx = entry.x + 12;
+      const cy = entry.y + 12;
+      const ratio = clamp(entry.downedTimer / DOWNED_DURATION, 0, 1);
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,0.08)";
+      ctx.fillRect(entry.x - 2, entry.y - 2, 28, 28);
+      ctx.strokeStyle = "#fff";
+      ctx.strokeRect(entry.x - 2, entry.y - 2, 28, 28);
+      ctx.strokeStyle = "#fca5a5";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 18, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * ratio);
+      ctx.stroke();
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 14px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(`P${entry.controlType}`, cx, cy);
+      if (entry.reviveProgress > 0) {
+        const reviveRatio = clamp(entry.reviveProgress / REVIVE_FRAMES, 0, 1);
+        ctx.strokeStyle = "#67e8f9";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 24, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * reviveRatio);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  function drawMenu() {
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.82)";
+    ctx.fillRect(0, 0, BASE_W, BASE_H);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "50px Arial";
+    const title = getGameTitle();
+    ctx.fillText(title, GAME_W / 2 - ctx.measureText(title).width / 2, 118);
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "18px Arial";
+    ctx.fillText(GAME_VERSION, 710, 118);
+
+    const items = [
+      t("menu.mode", { value: getModeName(state.menuMode) }),
+      t("menu.difficulty", { value: getDifficultyLabelByIndex(state.menuDifficulty) }),
+      t("menu.stage", { value: state.menuStage }),
+      t("menu.language", { value: getLanguageDisplayName(state.language) }),
+      t("menu.rules"),
+      t("menu.icons"),
+      t("menu.settings"),
+      t("menu.leaderboard"),
+      t("menu.start")
+    ];
+
+    const menuX = 290;
+    const menuY = 162;
+    const menuW = 460;
+    const menuH = 46;
+    const menuGap = 52;
+
+    ctx.font = "24px Arial";
+    for (let i = 0; i < items.length; i++) {
+      ctx.fillStyle = i === state.menuSelection ? "#facc15" : "#ddd";
+      ctx.fillRect(menuX, menuY + i * menuGap, menuW, menuH);
+      ctx.fillStyle = "#111";
+      ctx.fillText(items[i], menuX + 54, menuY + 31 + i * menuGap);
+    }
+
+    ctx.fillStyle = "#ddd";
+    ctx.font = "20px Arial";
+    ctx.fillText(t("menu.hint"), 128, 680);
+    ctx.fillText(t("menu.quickStart"), 220, 715);
+    ctx.fillText(t("menu.controlSummary", { p1: getControlSummary(1), p2: getControlSummary(2) }), 168, 750);
+    ctx.restore();
+  }
+
+  function drawRulesScreen() {
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.88)";
+    ctx.fillRect(0, 0, BASE_W, BASE_H);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "42px Arial";
+    ctx.fillText(t("rules.title"), 54, 70);
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "18px Arial";
+    ctx.fillText(t("rules.back"), 560, 68);
+    ctx.fillText("← →", 726, 68);
+    ctx.fillText(`${state.rulesPage + 1} / ${RULES_PAGE_COUNT}`, 862, 68);
+
+    function drawRuleBlock(x, y, w, title, lines) {
+      const h = 48 + lines.length * 22;
+      ctx.fillStyle = "rgba(15,23,42,0.92)";
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = "#475569";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, w, h);
+      ctx.fillStyle = "#facc15";
+      ctx.font = "21px Arial";
+      ctx.fillText(title, x + 18, y + 30);
+      ctx.fillStyle = "#e5e7eb";
+      ctx.font = "16px Arial";
+      for (let i = 0; i < lines.length; i++) {
+        ctx.fillText(lines[i], x + 18, y + 62 + i * 22);
+      }
+      return y + h + 16;
+    }
+
+    const leftX = 54;
+    const rightX = 535;
+    const blockW = 450;
+    const playerLines = listT("rules.blocks.player.lines").map(line =>
+      line.replace("{p1}", getControlSummary(1)).replace("{p2}", getControlSummary(2))
+    );
+
+    if ((state.rulesPage % RULES_PAGE_COUNT) === 0) {
+      let leftY = 106;
+      let rightY = 106;
+      leftY = drawRuleBlock(leftX, leftY, blockW, t("rules.blocks.quickStart.title"), listT("rules.blocks.quickStart.lines"));
+      leftY = drawRuleBlock(leftX, leftY, blockW, t("rules.blocks.winLose.title"), listT("rules.blocks.winLose.lines"));
+      rightY = drawRuleBlock(rightX, rightY, blockW, t("rules.blocks.player.title"), playerLines);
+      drawRuleBlock(rightX, rightY, blockW, t("rules.blocks.terrain.title"), listT("rules.blocks.terrain.lines"));
+    } else {
+      let leftY = 106;
+      let rightY = 106;
+      leftY = drawRuleBlock(leftX, leftY, blockW, t("rules.blocks.enemy.title"), listT("rules.blocks.enemy.lines"));
+      leftY = drawRuleBlock(leftX, leftY, blockW, t("rules.blocks.boss.title"), listT("rules.blocks.boss.lines"));
+      rightY = drawRuleBlock(rightX, rightY, blockW, t("rules.blocks.reward.title"), listT("rules.blocks.reward.lines"));
+      drawRuleBlock(rightX, rightY, blockW, t("rules.blocks.progress.title"), listT("rules.blocks.progress.lines"));
+    }
+
+    ctx.restore();
+  }
+
+  function drawSettingsScreen() {
+    const entries = getSettingsEntries();
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.88)";
+    ctx.fillRect(0, 0, BASE_W, BASE_H);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "42px Arial";
+    ctx.fillText(t("settings.title"), 54, 78);
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "18px Arial";
+    if (state.rebindingAction) {
+      const info = state.rebindingAction;
+      ctx.fillText(t("settings.rebinding", { player: info.controlType, action: getSettingsActionLabel(info.action) }), 210, 74);
+    } else {
+      ctx.fillText(t("settings.help"), 460, 74);
+    }
+
+    ctx.fillStyle = "rgba(15,23,42,0.92)";
+    ctx.fillRect(74, 116, 876, 588);
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(74, 116, 876, 588);
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "18px Arial";
+    ctx.fillText(t("settings.item"), 108, 154);
+    ctx.fillText(t("settings.current"), 476, 154);
+    ctx.fillText(t("settings.desc"), 692, 154);
+
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      const rowY = 188 + i * 38;
+      const active = i === state.settingsSelection;
+      ctx.fillStyle = active ? "rgba(250,204,21,0.18)" : (i % 2 === 0 ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.025)");
+      ctx.fillRect(92, rowY - 24, 836, 30);
+      ctx.fillStyle = active ? "#facc15" : "#e5e7eb";
+      ctx.font = "18px Arial";
+      ctx.fillText(entry.label, 108, rowY);
+      if (entry.type === "command") {
+        ctx.fillText("-", 492, rowY);
+        ctx.fillStyle = "#cbd5e1";
+        ctx.fillText(entry.hint, 692, rowY);
+      } else {
+        ctx.fillText(getBindingLabel(entry.controlType, entry.action), 492, rowY);
+        ctx.fillStyle = "#cbd5e1";
+        ctx.fillText(t("settings.actionDesc", { player: entry.controlType, action: getSettingsActionLabel(entry.action) }), 692, rowY);
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawLeaderboardScreen() {
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.88)";
+    ctx.fillRect(0, 0, BASE_W, BASE_H);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "42px Arial";
+    ctx.fillText(t("leaderboard.title"), 54, 78);
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "18px Arial";
+    ctx.fillText(t("leaderboard.help"), 380, 72);
+
+    ctx.fillStyle = "rgba(15,23,42,0.92)";
+    ctx.fillRect(58, 110, 924, 600);
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(58, 110, 924, 600);
+
+    ctx.fillStyle = "#facc15";
+    ctx.font = "22px Arial";
+    ctx.fillText(t("leaderboard.best", { value: state.bestScore }), 82, 148);
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "16px Arial";
+    ctx.fillText(t("leaderboard.summary"), 240, 147);
+
+    const filterY = 176;
+    const filters = [
+      { x: 82, text: t("leaderboard.filters.mode", { value: getLeaderboardModeFilterLabel() }) },
+      { x: 312, text: t("leaderboard.filters.difficulty", { value: getLeaderboardDifficultyFilterLabel() }) }
+    ];
+    for (const item of filters) {
+      ctx.fillStyle = "rgba(255,255,255,0.08)";
+      ctx.fillRect(item.x, filterY - 22, 190, 34);
+      ctx.strokeStyle = "#64748b";
+      ctx.strokeRect(item.x, filterY - 22, 190, 34);
+      ctx.fillStyle = "#e5e7eb";
+      ctx.font = "18px Arial";
+      ctx.fillText(item.text, item.x + 14, filterY);
+    }
+
+    const records = getFilteredLeaderboard();
+    if (records.length === 0) {
+      ctx.fillStyle = "#e5e7eb";
+      ctx.font = "24px Arial";
+      ctx.fillText(t("leaderboard.empty"), 210, 396);
+      ctx.restore();
+      return;
+    }
+
+    const cols = [86, 136, 228, 300, 384, 468, 570, 658];
+    const headers = listT("leaderboard.headers");
+    ctx.font = "17px Arial";
+    ctx.fillStyle = "#cbd5e1";
+    for (let i = 0; i < headers.length; i++) ctx.fillText(headers[i], cols[i], 226);
+
+    for (let i = 0; i < records.length; i++) {
+      const rowY = 266 + i * 40;
+      const item = records[i];
+      ctx.fillStyle = i % 2 === 0 ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.025)";
+      ctx.fillRect(76, rowY - 24, 872, 32);
+      ctx.fillStyle = i === 0 ? "#facc15" : "#e5e7eb";
+      ctx.font = "16px Arial";
+      ctx.fillText(String(i + 1), cols[0], rowY);
+      ctx.fillText(String(item.score), cols[1], rowY);
+      ctx.fillText(String(item.stage), cols[2], rowY);
+      ctx.fillText(getModeName(item.modeCode), cols[3], rowY);
+      ctx.fillText(t(`difficulty.${item.difficultyCode}`), cols[4], rowY);
+      ctx.fillText(t(item.resultKey).slice(0, 12), cols[5], rowY);
+      ctx.fillText(formatDuration(item.durationSec), cols[6], rowY);
+      ctx.fillText(String(formatHistoryTime(item.time)).slice(5, 21), cols[7], rowY);
+    }
+
+    ctx.restore();
+  }
+
+  function drawPauseMenu() {
+    if (!paused || state.screen !== "playing") return;
+
+    const items = listT("pause.items");
+    ctx.fillStyle = "rgba(0,0,0,0.72)";
+    ctx.fillRect(240, 250, 360, 240);
+    ctx.strokeStyle = "#fff";
+    ctx.strokeRect(240, 250, 360, 240);
+    ctx.fillStyle = "#fff";
+    ctx.font = "36px Arial";
+    ctx.fillText(t("pause.title"), 355, 300);
+
+    ctx.font = "24px Arial";
+    for (let i = 0; i < items.length; i++) {
+      ctx.fillStyle = state.pausedSelection === i ? "#facc15" : "#fff";
+      ctx.fillText(items[i], 340, 360 + i * 42);
+    }
+  }
+
+  function drawStageClear() {
+    ctx.fillStyle = "rgba(0,0,0,0.65)";
+    ctx.fillRect(150, 295, 532, 180);
+    ctx.fillStyle = "#fff";
+    ctx.font = "40px Arial";
+    ctx.fillText(t("stageClear.title", { stage: state.stage }), 250, 360);
+    ctx.font = "24px Arial";
+    ctx.fillText(t("stageClear.reward"), 310, 404);
+    ctx.fillText(t("stageClear.next"), 280, 440);
+  }
+
+  function wrapCenteredCardText(text, maxWidth) {
+    const lines = [];
+    let current = "";
+    for (const ch of [...text]) {
+      const next = current + ch;
+      if (!current) {
+        current = next;
+        continue;
+      }
+      if (ctx.measureText(next).width <= maxWidth) {
+        current = next;
+      } else {
+        lines.push(current);
+        current = ch;
+      }
+    }
+    if (current) lines.push(current);
+    return lines;
+  }
+
+  function drawCenteredChoiceText(text, centerX, centerY, maxWidth) {
+    const baseFont = 24;
+    const minFont = 18;
+    ctx.textAlign = "center";
+    for (let fontSize = baseFont; fontSize >= minFont; fontSize--) {
+      ctx.font = `${fontSize}px Arial`;
+      if (ctx.measureText(text).width <= maxWidth) {
+        ctx.fillText(text, centerX, centerY + fontSize * 0.12);
+        return;
+      }
+    }
+    ctx.font = `${minFont}px Arial`;
+    const lines = wrapCenteredCardText(text, maxWidth).slice(0, 2);
+    const lineHeight = 21;
+    const startY = centerY - ((lines.length - 1) * lineHeight) / 2 + 7;
+    lines.forEach((line, index) => {
+      ctx.fillText(line, centerX, startY + index * lineHeight);
+    });
+  }
+
+  function drawReward() {
+    const choiceCount = state.rewardChoices.length;
+    const boxX = 70;
+    const boxY = 140;
+    const cardX = 110;
+    const cardStartY = 235;
+    const cardGap = 88;
+    const cardHeight = 74;
+    const promptY = cardStartY + choiceCount * cardGap + 22;
+    const boxH = Math.max(430, promptY - boxY + 45);
+    ctx.fillStyle = "rgba(0,0,0,0.8)";
+    ctx.fillRect(boxX, boxY, 700, boxH);
+    ctx.strokeStyle = "#fff";
+    ctx.strokeRect(boxX, boxY, 700, boxH);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "34px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(t("reward.title"), boxX + 350, 205);
+
+    for (let i = 0; i < choiceCount; i++) {
+      const x = cardX;
+      const y = cardStartY + i * cardGap;
+      ctx.fillStyle = "rgba(255,255,255,0.08)";
+      ctx.fillRect(x, y - 30, 620, cardHeight);
+      ctx.strokeStyle = "#fff";
+      ctx.strokeRect(x, y - 30, 620, cardHeight);
+
+      ctx.fillStyle = "#fff";
+      drawCenteredChoiceText(`${i + 1}. ${state.rewardChoices[i].text}`, x + 310, y + 2, 560);
+    }
+
+    ctx.font = "24px Arial";
+    ctx.fillText(t("reward.prompt", { keys: state.rewardChoices.map((_, i) => i + 1).join(" / ") }), boxX + 350, promptY);
+    ctx.textAlign = "left";
+  }
+  function drawRelicReward() {
+    const choiceCount = state.relicChoices.length;
+    const boxX = 70;
+    const boxY = 140;
+    const cardX = 110;
+    const cardStartY = 235;
+    const cardGap = 88;
+    const cardHeight = 74;
+    const promptY = cardStartY + choiceCount * cardGap + 22;
+    const boxH = Math.max(430, promptY - boxY + 45);
+    ctx.fillStyle = "rgba(0,0,0,0.84)";
+    ctx.fillRect(boxX, boxY, 700, boxH);
+    ctx.strokeStyle = "#fff";
+    ctx.strokeRect(boxX, boxY, 700, boxH);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "34px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(t("relics.title"), boxX + 350, 205);
+
+    for (let i = 0; i < choiceCount; i++) {
+      const x = cardX;
+      const y = cardStartY + i * cardGap;
+      ctx.fillStyle = "rgba(255,255,255,0.08)";
+      ctx.fillRect(x, y - 30, 620, cardHeight);
+      ctx.strokeStyle = "#fff";
+      ctx.strokeRect(x, y - 30, 620, cardHeight);
+      ctx.fillStyle = "#fff";
+      drawCenteredChoiceText(`${i + 1}. ${state.relicChoices[i].text}`, x + 310, y + 2, 560);
+    }
+
+    ctx.font = "24px Arial";
+    ctx.fillText(t("relics.prompt", { keys: state.relicChoices.map((_, i) => i + 1).join(" / ") }), boxX + 350, promptY);
+    ctx.textAlign = "left";
+  }
+
+  function drawGameOver() {
+    ctx.fillStyle = "rgba(0,0,0,0.72)";
+    ctx.fillRect(165, 300, 502, 210);
+    ctx.fillStyle = "#fff";
+    ctx.font = "42px Arial";
+    ctx.fillText(t(state.gameOverText || "result.gameOver"), 260, 370);
+    ctx.font = "24px Arial";
+    ctx.fillText(`${t("hud.score")}：${state.score}`, 360, 418);
+    ctx.fillText(`R · ${listT("pause.items")[1]}`, 280, 454);
+    ctx.fillText(`Enter · ${listT("pause.items")[2]}`, 260, 486);
+  }
+
+  function drawBossIntro() {
+    if (state.bossIntroTimer <= 0 || state.screen !== "playing") return;
+    ctx.fillStyle = "rgba(0,0,0,0.68)";
+    ctx.fillRect(140, 120, 560, 110);
+    ctx.strokeStyle = "#fff";
+    ctx.strokeRect(140, 120, 560, 110);
+
+    ctx.fillStyle = "#f87171";
+    ctx.font = "24px Arial";
+    ctx.fillText(t("boss.intro"), 345, 160);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "30px Arial";
+    ctx.fillText(state.bossIntroText, 190, 202);
+  }
+
+  function drawStageIntro() {
+    if (state.stageIntroTimer <= 0 || state.screen !== "playing") return;
+
+    const fade = clamp(state.stageIntroTimer / 30, 0, 1);
+    ctx.save();
+    ctx.globalAlpha = fade;
+    ctx.fillStyle = "rgba(15,23,42,0.82)";
+    ctx.fillRect(166, 34, 500, 76);
+    ctx.strokeStyle = "#facc15";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(166, 34, 500, 76);
+    ctx.fillStyle = "#facc15";
+    ctx.font = "26px Arial";
+    ctx.fillText(state.stageIntroTitle, 190, 66);
+    ctx.fillStyle = "#e5e7eb";
+    ctx.font = "18px Arial";
+    ctx.fillText(state.stageIntroText, 190, 95);
+    ctx.restore();
+  }
+
+  function drawWorld() {
+    const sx = state.shake ? rand(-state.shake, state.shake) : 0;
+    const sy = state.shake ? rand(-state.shake, state.shake) : 0;
+
+    ctx.save();
+    ctx.translate(sx, sy);
+    drawMap();
+    drawEagle();
+
+    for (const sp of spawnEffects) sp.draw();
+    for (const pw of powerups) pw.draw();
+    drawReviveStatus();
+    for (const p of players) p.draw();
+    for (const e of enemies) e.draw();
+    for (const b of bullets) b.draw();
+    for (const hf of hitEffects) hf.draw();
+    for (const ex of explosions) ex.draw();
+    for (const ft of floatTexts) ft.draw();
+    ctx.restore();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, BASE_W, BASE_H);
+    drawWorld();
+    drawBossPanel();
+    drawHUD();
+
+    if (state.screen === "menu") drawMenu();
+    if (state.screen === "rules") drawRulesScreen();
+    if (state.screen === "settings") drawSettingsScreen();
+    if (state.screen === "leaderboard") drawLeaderboardScreen();
+    if (state.screen === "stageclear") drawStageClear();
+    if (state.screen === "reward") drawReward();
+    if (state.screen === "relic") drawRelicReward();
+    if (state.screen === "gameover") drawGameOver();
+
+    drawStageIntro();
+    drawBossIntro();
+    drawPauseMenu();
+  }
+
+  function handlePauseAction() {
+    if (state.pausedSelection === 0) {
+      paused = false;
+      clearInputState();
+    } else if (state.pausedSelection === 1) {
+      buildStage();
+    } else if (state.pausedSelection === 2) {
+      state.screen = "menu";
+      paused = false;
+      clearInputState();
+    }
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (!applyDirectionalKeydown(e)) {
+      keys[e.key] = true;
+      keys[e.code] = true;
+    }
+
+    if (state.screen === "menu") {
+      const menuItemCount = 9;
+
+      if (e.key === "1" || e.code === "Digit1" || e.code === "Numpad1") {
+        state.menuMode = 1;
+        startGame();
+        return;
+      }
+      if (e.key === "2" || e.code === "Digit2" || e.code === "Numpad2") {
+        state.menuMode = 2;
+        startGame();
+        return;
+      }
+      if (e.key === "h" || e.key === "H" || e.code === "KeyH") {
+        state.rulesPage = 0;
+        state.screen = "rules";
+        clearInputState();
+        return;
+      }
+      if (e.key === "i" || e.key === "I" || e.code === "KeyI") {
+        window.location.href = getIconGuideUrl();
+        clearInputState();
+        return;
+      }
+      if (e.key === "k" || e.key === "K" || e.code === "KeyK") {
+        state.screen = "settings";
+        state.settingsSelection = 0;
+        state.rebindingAction = null;
+        clearInputState();
+        return;
+      }
+      if (e.key === "l" || e.key === "L" || e.code === "KeyL") {
+        state.screen = "leaderboard";
+        clearInputState();
+        return;
+      }
+
+      if (e.key === "ArrowUp") state.menuSelection = (state.menuSelection + menuItemCount - 1) % menuItemCount;
+      else if (e.key === "ArrowDown") state.menuSelection = (state.menuSelection + 1) % menuItemCount;
+      else if (e.key === "ArrowLeft") {
+        if (state.menuSelection === 0) state.menuMode = state.menuMode === 1 ? 2 : 1;
+        if (state.menuSelection === 1) state.menuDifficulty = (state.menuDifficulty + 2) % 3;
+        if (state.menuSelection === 2) state.menuStage = Math.max(1, state.menuStage - 1);
+        if (state.menuSelection === 3) cycleLanguage(-1);
+      } else if (e.key === "ArrowRight") {
+        if (state.menuSelection === 0) state.menuMode = state.menuMode === 1 ? 2 : 1;
+        if (state.menuSelection === 1) state.menuDifficulty = (state.menuDifficulty + 1) % 3;
+        if (state.menuSelection === 2) state.menuStage = Math.min(state.unlockedStage, state.menuStage + 1);
+        if (state.menuSelection === 3) cycleLanguage(1);
+      } else if (e.key === "Enter") {
+        if (state.menuSelection === 3) {
+          cycleLanguage(1);
+        }
+        else if (state.menuSelection === 4) {
+          state.rulesPage = 0;
+          state.screen = "rules";
+          clearInputState();
+        }
+        else if (state.menuSelection === 5) {
+          window.location.href = getIconGuideUrl();
+          clearInputState();
+        }
+        else if (state.menuSelection === 6) {
+          state.screen = "settings";
+          state.settingsSelection = 0;
+          state.rebindingAction = null;
+          clearInputState();
+        }
+        else if (state.menuSelection === 7) {
+          state.screen = "leaderboard";
+          clearInputState();
+        }
+        else if (state.menuSelection === 8) startGame();
+      }
+
+      state.menuStage = clamp(state.menuStage, 1, Math.max(1, state.unlockedStage));
+      return;
+    }
+
+    if (state.screen === "leaderboard") {
+      if (e.key === "ArrowLeft") {
+        state.leaderboardModeFilter = (state.leaderboardModeFilter + 2) % 3;
+        return;
+      }
+      if (e.key === "ArrowRight") {
+        state.leaderboardModeFilter = (state.leaderboardModeFilter + 1) % 3;
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        state.leaderboardDifficultyFilter = (state.leaderboardDifficultyFilter + 3) % 4;
+        return;
+      }
+      if (e.key === "ArrowDown") {
+        state.leaderboardDifficultyFilter = (state.leaderboardDifficultyFilter + 1) % 4;
+        return;
+      }
+      if (
+        e.key === "Escape" ||
+        e.key === "Backspace" ||
+        e.key === "Enter" ||
+        e.key === "l" ||
+        e.key === "L" ||
+        e.code === "KeyL"
+      ) {
+        state.screen = "menu";
+        clearInputState();
+      }
+      return;
+    }
+
+    if (state.screen === "rules") {
+      if (e.key === "ArrowLeft") {
+        state.rulesPage = (state.rulesPage + RULES_PAGE_COUNT - 1) % RULES_PAGE_COUNT;
+        return;
+      }
+      if (e.key === "ArrowRight") {
+        state.rulesPage = (state.rulesPage + 1) % RULES_PAGE_COUNT;
+        return;
+      }
+      if (
+        e.key === "Escape" ||
+        e.key === "Backspace" ||
+        e.key === "Enter" ||
+        e.key === "h" ||
+        e.key === "H" ||
+        e.code === "KeyH"
+      ) {
+        state.screen = "menu";
+        clearInputState();
+      }
+      return;
+    }
+
+    if (state.screen === "settings") {
+      const entries = getSettingsEntries();
+      if (state.rebindingAction) {
+        if (e.key === "Escape") {
+          state.rebindingAction = null;
+          clearInputState();
+          return;
+        }
+        applyBindingChange(state.rebindingAction.controlType, state.rebindingAction.action, e);
+        state.rebindingAction = null;
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        state.settingsSelection = (state.settingsSelection + entries.length - 1) % entries.length;
+        return;
+      }
+      if (e.key === "ArrowDown") {
+        state.settingsSelection = (state.settingsSelection + 1) % entries.length;
+        return;
+      }
+      if (e.key === "r" || e.key === "R" || e.code === "KeyR") {
+        resetKeyBindingsToDefault();
+        return;
+      }
+      if (e.key === "Enter") {
+        const entry = entries[state.settingsSelection];
+        if (entry.type === "command") {
+          resetKeyBindingsToDefault();
+        } else {
+          state.rebindingAction = { controlType: entry.controlType, action: entry.action };
+          clearInputState();
+        }
+        return;
+      }
+      if (
+        e.key === "Escape" ||
+        e.key === "Backspace" ||
+        e.key === "k" ||
+        e.key === "K" ||
+        e.code === "KeyK"
+      ) {
+        state.screen = "menu";
+        clearInputState();
+      }
+      return;
+    }
+
+    if ((e.key === "p" || e.key === "P" || e.code === "KeyP") && state.screen === "playing") {
+      paused = !paused;
+      clearInputState();
+      return;
+    }
+
+    if (paused && state.screen === "playing") {
+      if (e.key === "ArrowUp") state.pausedSelection = (state.pausedSelection + 2) % 3;
+      else if (e.key === "ArrowDown") state.pausedSelection = (state.pausedSelection + 1) % 3;
+      else if (e.key === "Enter") handlePauseAction();
+      return;
+    }
+
+    if ((e.key === "r" || e.key === "R" || e.code === "KeyR") && state.screen === "playing") {
+      buildStage();
+      return;
+    }
+
+    if (state.screen === "playing") {
+      const p1 = players.find(p => p.controlType === 1 && p.alive);
+      const p2 = players.find(p => p.controlType === 2 && p.alive);
+
+      if (matchesAction(1, "shoot", e) && p1) {
+        e.preventDefault();
+        p1.shoot();
+      }
+      if (matchesAction(2, "shoot", e) && p2) {
+        p2.shoot();
+      }
+      if (matchesAction(1, "dash", e) && p1) {
+        e.preventDefault();
+        p1.startPlayerDash();
+      }
+      if (matchesAction(2, "dash", e) && p2) {
+        p2.startPlayerDash();
+      }
+      return;
+    }
+
+    if (state.screen === "reward") {
+      if (e.key === "1" || e.code === "Digit1" || e.code === "Numpad1") applyRewardChoice(0);
+      if (e.key === "2" || e.code === "Digit2" || e.code === "Numpad2") applyRewardChoice(1);
+      if (e.key === "3" || e.code === "Digit3" || e.code === "Numpad3") applyRewardChoice(2);
+      return;
+    }
+
+    if (state.screen === "relic") {
+      if (e.key === "1" || e.code === "Digit1" || e.code === "Numpad1") applyRelicChoice(0);
+      if (e.key === "2" || e.code === "Digit2" || e.code === "Numpad2") applyRelicChoice(1);
+      if (e.key === "3" || e.code === "Digit3" || e.code === "Numpad3") applyRelicChoice(2);
+      if (e.key === "4" || e.code === "Digit4" || e.code === "Numpad4") applyRelicChoice(3);
+      return;
+    }
+
+    if (state.screen === "gameover") {
+      if (e.key === "Enter") {
+        state.screen = "menu";
+        clearInputState();
+      } else if (e.key === "r" || e.key === "R" || e.code === "KeyR") {
+        state.runRecorded = false;
+        buildStage();
+      }
+    }
+  });
+
+  document.addEventListener("keyup", (e) => {
+    if (!applyDirectionalKeyup(e)) {
+      delete keys[e.key];
+      delete keys[e.code];
+    }
+  });
+  window.addEventListener("blur", clearInputState);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) clearInputState();
+  });
+
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  buildMap();
+  loop();
+})();
+</script>
+</body>
+</html>

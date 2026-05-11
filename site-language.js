@@ -19,7 +19,7 @@
         navIcons: "图标总览",
         navRecords: "完整记录",
         eyebrow: "正式发布入口",
-        lead: "围绕单人 / 双人协作、Boss 关压力、地图轮换与操作反馈持续打磨的坦克防守版本。当前正式入口指向 <strong>{version}</strong>，这一版重点把炸弹与油桶的真实规则重新校准，道具图标整体改成更易辨认的无边框风格，并把图标总览页正式接进了发布站。",
+        lead: "围绕单人 / 双人协作、Boss 关压力、地图轮换与操作反馈持续打磨的坦克防守版本。当前正式入口指向 <strong>{version}</strong>，这一版重点把 Boss 奖励结构收回成单轮常规 3 选 1 + 单独遗物页，并集中修正奖励界面排版和暴击子弹互撞卡顿问题。",
         start: "立即开始",
         updates: "查看更新",
         versions: "历史版本",
@@ -63,7 +63,7 @@
           {
             label: "Boss 设计",
             title: "3 类路线",
-            desc: "当前版本已经把追击、弹幕和干扰型 Boss 玩法区分得比较明确，并追加了常规奖励 + 遗物奖励的两层成长。"
+            desc: "当前版本已经把追击、弹幕和干扰型 Boss 玩法区分得比较明确，并把 Boss 结算收成单轮常规奖励加单独遗物页。"
           }
         ],
         focusCards: [
@@ -73,7 +73,7 @@
           },
           {
             title: "成长系统",
-            desc: "Boss 通关后会先结算两轮常规奖励，再进入一轮遗物奖励，成长内容覆盖供弹、冲刺余辉、基地修筑和草丛索敌。"
+            desc: "Boss 通关后会先结算单轮常规 3 选 1，再进入一轮遗物奖励；这版同时把奖励页居中和暴击子弹互撞卡顿一起修掉。"
           },
           {
             title: "场地交互",
@@ -92,7 +92,7 @@
         ],
         historyCards: {
           currentTitle: "当前正式版本",
-          currentDesc: "`{version}` 作为默认游玩入口，面向当前对外发布，并整合了炸弹与油桶规则回调、无边框道具图标重绘和图标总览页入口。",
+          currentDesc: "`{version}` 作为默认游玩入口，面向当前对外发布，并整合了 Boss 奖励结构回调、奖励界面居中修正和暴击子弹互撞结算重写。",
           historyTitle: "历史版本",
           historyDesc: "`{version}` 作为可查找的历史版本保留，适合回看之前的手感与表现。",
           open: "打开 {version}"
@@ -107,7 +107,7 @@
         navIcons: "Icon guide",
         navRecords: "Full log",
         eyebrow: "Release entry",
-        lead: "A tank defense build refined around solo / co-op play, boss pressure, rotating maps and sharper controls. The current public entry points to <strong>{version}</strong>, and this build realigns the real bomb and oil-barrel rules, redraws the item icons into a cleaner borderless set, and adds a dedicated icon guide page to the release site.",
+        lead: "A tank defense build refined around solo / co-op play, boss pressure, rotating maps and sharper controls. The current public entry points to <strong>{version}</strong>, and this build pulls boss rewards back to a single 3-choice standard reward plus a separate relic page while also cleaning up reward layout and critical bullet clash stalls.",
         start: "Play now",
         updates: "See updates",
         versions: "Version history",
@@ -151,7 +151,7 @@
           {
             label: "Boss design",
             title: "3 routes",
-            desc: "The current build clearly separates chase, bullet-pattern and disruption style bosses, and now layers relic choices after the standard boss reward."
+            desc: "The current build clearly separates chase, bullet-pattern and disruption style bosses, and now resolves them through one standard reward page followed by a separate relic page."
           }
         ],
         focusCards: [
@@ -161,7 +161,7 @@
           },
           {
             title: "Progression",
-            desc: "Boss clears now resolve through two standard reward rounds before one relic round, expanding progression into ammo refunds, dash afterglow, field repair and grass tracking."
+            desc: "Boss clears now resolve through one standard 3-choice reward before one relic page, while this build also fixes reward alignment and critical bullet clash stalling."
           },
           {
             title: "Map interaction",
@@ -180,7 +180,7 @@
         ],
         historyCards: {
           currentTitle: "Current release",
-          currentDesc: "`{version}` is the default public play entry and currently rolls up the corrected bomb and oil rules, the borderless item icon pass and the new icon guide page.",
+          currentDesc: "`{version}` is the default public play entry and now rolls up the simplified boss reward flow, centered reward layout and the rewritten critical bullet clash resolution.",
           historyTitle: "Older build",
           historyDesc: "`{version}` remains available as a visible historical build for feel and balance comparison.",
           open: "Open {version}"
@@ -239,7 +239,7 @@
           {
             label: "Boss設計",
             title: "3系統",
-            desc: "追撃、弾幕、妨害系Bossの違いが現行版ではかなり明確で、通常報酬の後に遺物選択が続く二段構えになっています。"
+            desc: "追撃、弾幕、妨害系Bossの違いが現行版ではかなり明確で、Boss撃破後は通常報酬 3 択と遺物ページに整理されています。"
           }
         ],
         focusCards: [
@@ -249,7 +249,7 @@
           },
           {
             title: "成長要素",
-            desc: "Boss撃破後は通常報酬を2回選び、その後で遺物も入るため、補給連鎖、ダッシュ余光、基地修築、草むら索敵まで成長先が広がっています。"
+            desc: "Boss撃破後は通常報酬 3 択を 1 回選び、その後で遺物を選ぶ構成になり、同時に報酬UIの中央揃えと会心弾の衝突処理も整理されました。"
           },
           {
             title: "地形との相互作用",
@@ -268,7 +268,7 @@
         ],
         historyCards: {
           currentTitle: "現在の正式版",
-          currentDesc: "`{version}` は現在の対外公開向けプレイ入口で、爆弾とオイル樽の実際のルール修正、枠なし道具アイコン、アイコン一覧ページまで反映した正式公開版です。",
+          currentDesc: "`{version}` は現在の対外公開向けプレイ入口で、Boss報酬構造の整理、報酬UI中央揃え、会心弾の衝突処理見直しまで反映した正式公開版です。",
           historyTitle: "旧バージョン",
           historyDesc: "`{version}` は比較や振り返り用の履歴版として残しています。",
           open: "{version} を開く"
@@ -283,7 +283,7 @@
         navIcons: "아이콘 안내",
         navRecords: "전체 기록",
         eyebrow: "정식 배포 입구",
-        lead: "이 방어형 탱크 빌드는 싱글 / 2인 협력, Boss 압박, 맵 순환, 조작 반응을 중심으로 계속 다듬어졌습니다. 현재 정식 입구는 <strong>{version}</strong> 을 가리키며, 이번에는 폭탄과 기름통의 실제 규칙을 다시 맞추고, 아이템 아이콘을 테두리 없는 형태로 다시 그렸으며, 아이콘 안내 페이지도 정식 사이트에 붙였습니다.",
+        lead: "이 방어형 탱크 빌드는 싱글 / 2인 협력, Boss 압박, 맵 순환, 조작 반응을 중심으로 계속 다듬어졌습니다. 현재 정식 입구는 <strong>{version}</strong> 을 가리키며, 이번에는 Boss 보상 구조를 일반 3지선다 1회 + 유물 페이지로 정리하고 보상 UI 정렬과 치명타 탄환 충돌 끊김도 함께 다듬었습니다.",
         start: "바로 시작",
         updates: "업데이트 보기",
         versions: "버전 기록",
@@ -327,7 +327,7 @@
           {
             label: "Boss 설계",
             title: "3가지 계열",
-            desc: "추격형, 탄막형, 방해형 Boss의 성격 구분이 더 분명해졌고, 이제 일반 보상 뒤에 유물 선택까지 이어집니다."
+            desc: "추격형, 탄막형, 방해형 Boss의 성격 구분이 더 분명해졌고, 이제 Boss 클리어 후 일반 보상 1회와 유물 페이지로 매끄럽게 이어집니다."
           }
         ],
         focusCards: [
@@ -337,7 +337,7 @@
           },
           {
             title: "성장 시스템",
-            desc: "Boss 클리어 후에는 일반 보상을 두 번 고른 다음 유물을 고르기 때문에, 탄약 환급, 대시 여운, 기지 보수, 풀숲 추적까지 성장 방향이 넓어졌습니다."
+            desc: "Boss 클리어 후에는 일반 보상 3지선다를 한 번 고른 뒤 유물 페이지로 넘어가며, 이번에는 보상 문구 정렬과 치명타 탄환 충돌 처리도 함께 정리했습니다."
           },
           {
             title: "지형 상호작용",
@@ -356,7 +356,7 @@
         ],
         historyCards: {
           currentTitle: "현재 정식 버전",
-          currentDesc: "`{version}` 은 현재 대외 공개용 기본 플레이 입구로, 폭탄과 기름통의 실제 규칙 보정, 테두리 없는 아이템 아이콘, 아이콘 안내 페이지까지 반영한 정식 공개 버전입니다.",
+          currentDesc: "`{version}` 은 현재 대외 공개용 기본 플레이 입구로, Boss 보상 구조 정리, 보상 UI 가운데 정렬, 치명타 탄환 충돌 처리 개편까지 반영한 정식 공개 버전입니다.",
           historyTitle: "이전 버전",
           historyDesc: "`{version}` 은 비교와 회고용으로 남겨 둔 기록 버전입니다.",
           open: "{version} 열기"
